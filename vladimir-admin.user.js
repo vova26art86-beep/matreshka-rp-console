@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Vladimir Console — Matreshka RP (4.6.4 · leadership and player reply tracking)
 // @namespace    Vladimir_Sudarikov.AtelierConsole
-// @version      4.6.6
+// @version      4.6.7
 // @description  Персональная консоль: цвет ника точно берётся из текста плашки Egor_Andyfy; кнопка копирования образца убрана
 // @match        https://forum.matrp.ru/*
 // @match        http://forum.matrp.ru/*
@@ -256,8 +256,8 @@
       <section><div class="va-label">Личные заметки</div><textarea id="va320-notes" placeholder="Идеи, ссылки, напоминания…"></textarea><div class="va-row" style="margin-top:7px"><button class="va-small" id="va320-save-notes">Сохранить</button><button class="va-small" id="va320-clear-notes">Очистить</button></div></section>
       <section><div class="va-label">Персонализация</div><div class="va-row"><select id="va320-theme"><option value="obsidian">Obsidian · тёмная</option><option value="pearl">Pearl · светлая</option><option value="forest">Forest · зелёная</option></select><input id="va320-accent" type="color" aria-label="Акцентный цвет" style="max-width:50px;padding:3px"></div><button class="va-small" id="va320-reset-style" style="width:100%;margin-top:7px">Сбросить оформление</button></section>
       <div class="va-footer">
-        <div class="va-footer-top"><span class="va-footer-brand">✦ ATELIER CONSOLE · 4.5.0</span><span class="va-footer-state"><i></i> ЛОКАЛЬНО</span></div>
-        <div class="va-footer-bottom"><span>Matreshka RP · личная панель</span><span>ALT + M</span></div>
+        <div class="va-footer-top"><span class="va-footer-brand">✦ ATELIER CONSOLE · 4.6.7</span><span class="va-footer-state"><i></i> GITHUB · AUTOUPDATE</span></div>
+        <div class="va-footer-bottom"><span>Matreshka RP · автообновления через GitHub</span><span>ALT + M</span></div>
         <div class="va-footer-note">Шаблоны добавляют только текст ответа. Префиксы выбираются отдельно — так черновик не пропадает при вставке.</div>
       </div>
     </main>`;
