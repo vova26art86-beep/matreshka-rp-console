@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Vladimir | Leader & Deputy Center
 // @namespace    Vladimir_Sudarikov.MatreshkaTools
-// @version      2.1.7
+// @version      2.1.8
 // @description  Vladimir Leader & Deputy Center with improved XenForo SLA date parsing.
 // @match        https://forum.matrp.ru/*
 // @run-at       document-idle
@@ -198,7 +198,7 @@
           <div class="muted" id="topic-toolbar-hint">Одно нажатие: консоль сама откроет меню инструментов, выберет команду и подтвердит только соответствующее действие.</div>
         </section>
         <main class="content" id="content"></main>
-        <footer class="footer"><span>VLADIMIR · LEADER & DEPUTY</span><span>v2.1.6</span></footer>
+        <footer class="footer"><span>VLADIMIR · LEADER & DEPUTY</span><span>v2.1.8 · GITHUB UPDATE</span></footer>
       </div>
     </section>
     <button class="launch" data-act="open">♜ VLADIMIR · ЛД / ЗАМЫ</button>
