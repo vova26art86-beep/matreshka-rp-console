@@ -206,13 +206,13 @@
     .vldc-sla-chip.is-done{border-color:#34d399!important;background:#064e3b!important}
     .vldc-sla-chip.is-near{border-color:#fbbf24!important;background:#78350f!important}
     .vldc-sla-row-overdue{background-color:#7f1d1d12!important;outline:1px solid #fb718566!important;outline-offset:-1px!important}
-    #${APP_ID} .vldc-review-wrap{display:inline-flex;flex-wrap:wrap;align-items:center;gap:5px;margin:4px 0 2px 7px;vertical-align:middle}
-    #${APP_ID} .vldc-review-state{font:700 10px/1.35 Segoe UI,Arial,sans-serif;color:#a7f3d0}
-    #${APP_ID} .vldc-review-state.is-stale{color:#fcd34d}
-    #${APP_ID} .vldc-review-state.is-overdue{color:#fda4af}
-    #${APP_ID} .vldc-review-btn{border:1px solid #34d39988;border-radius:7px;background:#064e3b;color:#d1fae5;padding:3px 7px;font:700 10px/1.3 Segoe UI,Arial,sans-serif;cursor:pointer}
-    #${APP_ID} .vldc-review-thread-control{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:7px 0 10px}
-    #${APP_ID} .vldc-review-thread-control .vldc-review-wrap{margin:0}
+    .vldc-review-wrap{display:inline-flex;flex-wrap:wrap;align-items:center;gap:5px;margin:4px 0 2px 7px;vertical-align:middle}
+    .vldc-review-state{font:700 10px/1.35 Segoe UI,Arial,sans-serif;color:#a7f3d0}
+    .vldc-review-state.is-stale{color:#fcd34d}
+    .vldc-review-state.is-overdue{color:#fda4af}
+    .vldc-review-btn{border:1px solid #34d39988;border-radius:7px;background:#064e3b;color:#d1fae5;padding:3px 7px;font:700 10px/1.3 Segoe UI,Arial,sans-serif;cursor:pointer}
+    .vldc-review-thread-control{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:7px 0 10px}
+    .vldc-review-thread-control .vldc-review-wrap{margin:0}
   `;
   (document.head || document.documentElement).appendChild(slaCss);
 
