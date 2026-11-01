@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name         Vladimir Console — Matreshka RP (4.6.8 · mobile optimized)
+// @name         Vladimir Console — Matreshka RP (4.6.9 · LD SLA sync)
 // @namespace    Vladimir_Sudarikov.AtelierConsole
-// @version      4.6.8
-// @description  Персональная консоль: цвет ника точно берётся из текста плашки Egor_Andyfy; кнопка копирования образца убрана
+// @version      4.6.9
+// @description  Персональная консоль с логикой контроля сроков, синхронизированной с ЛД
 // @match        https://forum.matrp.ru/*
 // @match        http://forum.matrp.ru/*
 // @run-at       document-idle
@@ -960,15 +960,37 @@
     saveTrackedSlaItems();
   }
 
+  // Match the LD Center: 24 hours from the latest player reply (or topic creation),
+  // closed when the latest reply comes from a leader/deputy/admin.
   function getSlaClockStart(item) {
     const lastAt = Number(item?.lastReplyAt) || 0;
     const lastRole = String(item?.lastReplyRole || item?.latestAuthorRole || '');
     if (lastRole === 'player' && lastAt > 0) return lastAt;
     const playerAt = Number(item?.lastPlayerReplyAt) || 0;
-    if (playerAt > lastAt && playerAt > 0) return playerAt;
-    return Number(item?.createdAt) || 0;
+    return playerAt > 0 ? playerAt : (Number(item?.createdAt) || 0);
   }
   function getSlaDeadline(item) { return getSlaClockStart(item) + ONE_DAY_MS; }
+  function formatSlaCountdown(ms) {
+    const abs = Math.max(0, Number(ms) || 0);
+    const hours = Math.floor(abs / ONE_HOUR_MS);
+    const minutes = Math.floor((abs % ONE_HOUR_MS) / 60000);
+    return `${hours} ч ${String(minutes).padStart(2, '0')} мин`;
+  }
+  function getSlaDisplayStatus(item, now = Date.now()) {
+    const left = getSlaDeadline(item) - now;
+    if (item?.answered === true) {
+      return { state: 'answered', left, text: '✓ Ответ лидера / заместителя / администрации найден' };
+    }
+    if (left <= 0) {
+      return item?.answered === false
+        ? { state: 'overdue', left, text: `⚠ СРОК ИСТЁК · ${formatSlaCountdown(-left)} · ответ не найден среди загруженных сообщений` }
+        : { state: 'overdue-unverified', left, text: `⚠ СРОК ИСТЁК · ${formatSlaCountdown(-left)} · ответ ещё не проверен` };
+    }
+    if (left <= 3 * ONE_HOUR_MS) {
+      return { state: 'near', left, text: `⏳ Скоро срок: ${formatSlaCountdown(left)}` };
+    }
+    return { state: 'pending', left, text: `До срока: ${formatSlaCountdown(left)}${item?.answered === null ? ' · ответ не проверен' : ''}` };
+  }
   function getSlaPriority(item, now = Date.now()) {
     const deadline = getSlaDeadline(item);
     const overdue = deadline <= now;
@@ -1146,7 +1168,8 @@
     const latestPlayer = records.filter(item => item.role === 'player').reduce((best, item) => !best || item.at > best.at ? item : best, null);
     const latestManager = records.filter(item => item.role !== 'player').reduce((best, item) => !best || item.at > best.at ? item : best, null);
     return {
-      answered: latest ? latest.role !== 'player' : null,
+      // As in LD: if a topic has no replies yet, its 24-hour clock starts at creation.
+      answered: latest ? latest.role !== 'player' : false,
       lastReplyAt: latest?.at || 0, lastReplyRole: latest?.role || '', lastReplyAuthor: latest?.author || '',
       lastPlayerReplyAt: latestPlayer?.at || 0, lastPlayerReplyAuthor: latestPlayer?.author || '',
       lastManagerReplyAt: latestManager?.at || 0, lastManagerReplyRole: latestManager?.role || '', lastManagerReplyAuthor: latestManager?.author || ''
@@ -1214,24 +1237,18 @@
       badge.className = 'va340-sla-chip';
       title.appendChild(badge);
     }
-    const left = getSlaDeadline(item) - Date.now();
-    const overdue = left <= 0 && answered === false;
-    const near = left > 0 && left < 3 * 3600000;
-    row.classList.toggle('va340-sla-row-overdue', overdue);
-    row.classList.toggle('va340-sla-row-near', near);
-    if (answered === true) {
-      badge.textContent = '✓ ОТВЕТ ЛИДЕРА / ЗАМЕСТИТЕЛЯ / АДМИНИСТРАЦИИ НАЙДЕН';
+    const status = getSlaDisplayStatus(item);
+    row.classList.toggle('va340-sla-row-overdue', status.state === 'overdue');
+    row.classList.toggle('va340-sla-row-near', status.state === 'near' || status.state === 'overdue-unverified');
+    badge.textContent = status.text;
+    if (status.state === 'answered') {
       badge.style.background = '#10b98125'; badge.style.color = '#34d399';
-    } else if (overdue) {
-      badge.textContent = '⚠ ПРОСРОЧЕНО · ' + timeLabel(-left);
+    } else if (status.state === 'overdue') {
       badge.style.background = ''; badge.style.color = '';
-    } else if (left <= 0) {
-      badge.textContent = '⚠ ПРОСРОЧКА · ответ ещё не подтверждён';
+    } else if (status.state === 'overdue-unverified' || status.state === 'near') {
       badge.style.background = '#f59e0b25'; badge.style.color = '#fbbf24';
     } else {
-      badge.textContent = 'До просрочки: ' + timeLabel(left) + (answered === null ? ' · ответ не проверен' : '');
-      badge.style.background = near ? '#f59e0b25' : '#8b5cf622';
-      badge.style.color = near ? '#fbbf24' : 'var(--va-muted)';
+      badge.style.background = '#8b5cf622'; badge.style.color = 'var(--va-muted)';
     }
     const activityText = slaActivityLabel(item);
     if (activityText) badge.textContent += ' · ' + activityText;
@@ -1274,21 +1291,10 @@
     const item = card?._vaSlaItem;
     const status = card?.querySelector('.va340-sla-card-status');
     if (!item || !status) return;
-    const left = getSlaDeadline(item) - now;
+    const display = getSlaDisplayStatus(item, now);
     card.classList.remove('answered', 'overdue', 'near', 'overdue-unverified');
-    if (item.answered === true) {
-      status.textContent = 'Ответ лидера / заместителя / администрации найден.';
-      card.classList.add('answered');
-    } else if (left <= 0 && item.answered === false) {
-      status.textContent = 'ПРОСРОЧЕНО на ' + timeLabel(-left) + ' — ответ лидера / заместителя / администрации не найден.';
-      card.classList.add('overdue');
-    } else if (left <= 0) {
-      status.textContent = 'СРОК ИСТЁК на ' + timeLabel(-left) + ' — ответ не проверен; требуется повторная проверка.';
-      card.classList.add('overdue-unverified');
-    } else {
-      status.textContent = 'До просрочки: ' + timeLabel(left) + (item.answered === null ? ' · ответ ещё не проверен' : ' · ожидает рассмотрения');
-      if (left < 3 * 3600000) card.classList.add('near');
-    }
+    status.textContent = display.text;
+    card.classList.add(display.state);
     const activityText = slaActivityLabel(item);
     if (activityText) status.textContent += ' · ' + activityText;
   }
@@ -1510,16 +1516,9 @@
       badge = document.createElement('span');
       titleNode.insertAdjacentElement('afterend', badge);
     }
-    const left = getSlaDeadline(item) - Date.now();
-    badge.className = item.answered === true || left > 0 || item.answered === null ? slaStyles.due : slaStyles.overdue;
-    const mainStatus = item.answered === true
-      ? ' ✓ Ответ администрации / руководства найден'
-      : left <= 0 && item.answered === false
-        ? ' ⚠ ПРОСРОЧЕНО: ответ руководства не найден · ' + timeLabel(-left)
-        : left <= 0
-          ? ' ⚠ СРОК ИСТЁК: ответ ещё не проверен · ' + timeLabel(-left)
-          : ' ⏳ До просрочки: ' + timeLabel(left);
-    badge.textContent = mainStatus + (slaActivityLabel(item) ? ' · ' + slaActivityLabel(item) : '');
+    const display = getSlaDisplayStatus(item);
+    badge.className = display.state === 'overdue' || display.state === 'overdue-unverified' ? slaStyles.overdue : slaStyles.due;
+    badge.textContent = display.text + (slaActivityLabel(item) ? ' · ' + slaActivityLabel(item) : '');
   }
   function inspectCurrentThread() {
     const ctx = inPanel('va340-context-status');
