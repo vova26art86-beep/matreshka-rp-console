@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Vladimir | Leader & Deputy Center
 // @namespace    Vladimir_Sudarikov.MatreshkaTools
-// @version      2.1.8
+// @version      2.1.9
 // @description  Vladimir Leader & Deputy Center with improved XenForo SLA date parsing.
 // @match        https://forum.matrp.ru/*
 // @run-at       document-idle
@@ -150,7 +150,52 @@
     #${APP_ID} .footer { display:flex; flex:0 0 auto; justify-content:space-between; padding:9px 13px; border-top:1px solid #ffffff15; color:#9888a7; font-size:9px; }
     #${APP_ID} .error { min-height:15px; margin:6px 0; color:#ff9eaa; font-size:10px; }
     #${APP_ID} .toast { position:fixed; right:16px; top:70px; z-index:2147483001; max-width:min(360px,calc(100vw - 36px)); padding:10px 13px; border:1px solid #e8c88f55; border-radius:10px; color:#fff; background:#332546; box-shadow:0 5px 16px #0005; font:12px/1.4 Segoe UI,Arial,sans-serif; }
-    @media(max-width:520px){ #${APP_ID}{right:10px} #${APP_ID} .panel{width:calc(100vw - 20px);max-height:calc(100vh - var(--vldc-top) - 10px)} #${APP_ID} .toast{right:10px;max-width:calc(100vw - 20px)} }
+    @media(max-width:600px){
+      #${APP_ID}{right:max(6px,env(safe-area-inset-right));left:auto;max-width:calc(100vw - 12px)}
+      #${APP_ID} .launch{max-width:calc(100vw - 12px);min-height:46px;padding:12px 14px;font-size:12px;white-space:normal;touch-action:manipulation}
+      #${APP_ID} .panel{width:calc(100vw - 12px);height:calc(100dvh - var(--vldc-top) - 8px);max-height:calc(100dvh - var(--vldc-top) - 8px);border-radius:14px}
+      #${APP_ID} .head{min-height:56px;padding:8px 9px;gap:6px}
+      #${APP_ID} .brand{gap:7px}
+      #${APP_ID} .mark{width:32px;height:32px;border-radius:9px;font-size:17px}
+      #${APP_ID} .title{font-size:12px;letter-spacing:.2px}
+      #${APP_ID} .sub{font-size:9px;line-height:1.25}
+      #${APP_ID} .head-actions{gap:3px}
+      #${APP_ID} .head-actions .icon,#${APP_ID} .icon{width:40px;height:40px;min-width:40px;min-height:40px;flex-basis:40px;border-radius:10px;font-size:15px;touch-action:manipulation}
+      #${APP_ID} .tabs{grid-template-columns:repeat(4,minmax(0,1fr));gap:3px;padding:6px 7px}
+      #${APP_ID} .tab{min-height:42px;padding:9px 2px;font-size:10px;line-height:1.2;overflow-wrap:anywhere;touch-action:manipulation}
+      #${APP_ID} .topic-toolbar{margin:7px 7px 0;padding:8px;border-radius:10px}
+      #${APP_ID} .topic-toolbar .action-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+      #${APP_ID} .topic-toolbar .action{min-height:44px;padding:8px 5px;font-size:11px;line-height:1.25;overflow-wrap:anywhere;touch-action:manipulation}
+      #${APP_ID} .topic-toolbar .muted{max-height:3em;overflow:auto;font-size:9px}
+      #${APP_ID} .content{min-height:0;padding:9px;overflow-x:hidden;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;touch-action:pan-y}
+      #${APP_ID} #login{min-height:0;padding-bottom:10px}
+      #${APP_ID} .group{margin-bottom:9px;padding:8px}
+      #${APP_ID} .link{min-height:44px;padding:10px 9px;gap:6px;overflow-wrap:anywhere;touch-action:manipulation}
+      #${APP_ID} .link small{font-size:9px}
+      #${APP_ID} .action-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+      #${APP_ID} .action{min-height:44px;padding:9px 8px;font-size:12px;line-height:1.3;overflow-wrap:anywhere;touch-action:manipulation}
+      #${APP_ID} .field{margin:7px 0}
+      #${APP_ID} input,#${APP_ID} select{min-height:44px;padding:10px;font-size:16px}
+      #${APP_ID} .primary{min-height:46px;padding:11px;font-size:13px;touch-action:manipulation}
+      #${APP_ID} .hint{padding:8px;font-size:10px;line-height:1.4}
+      #${APP_ID} .footer{flex-wrap:wrap;gap:5px 10px;padding:8px 10px;font-size:9px}
+      #${APP_ID} .toast{top:max(58px,env(safe-area-inset-top));right:8px;max-width:calc(100vw - 16px);font-size:11px}
+    }
+    @media(max-width:360px){
+      #${APP_ID} .topic-toolbar .action{font-size:10px}
+      #${APP_ID} .head-actions{gap:2px}
+      #${APP_ID} .head-actions .icon{width:36px;height:38px;min-width:36px;min-height:38px;flex-basis:36px}
+      #${APP_ID} .title{font-size:11px}
+      #${APP_ID} .tabs{gap:2px;padding-left:4px;padding-right:4px}
+      #${APP_ID} .tab{font-size:9px}
+    }
+    @media(orientation:landscape) and (max-height:520px) and (max-width:900px){
+      #${APP_ID} .topic-toolbar .muted{display:none}
+      #${APP_ID} .topic-toolbar{margin-top:5px;padding:6px}
+      #${APP_ID} .head{min-height:46px;padding:5px 8px}
+      #${APP_ID} .tabs{padding-top:4px;padding-bottom:4px}
+      #${APP_ID} .footer{padding:5px 8px}
+    }
   `;
   (document.head || document.documentElement).appendChild(css);
   const slaCss = document.createElement('style');
@@ -165,7 +210,7 @@
 
   const root = document.createElement('div');
   root.id = APP_ID;
-  root.setAttribute('data-console-version', '2.1.6');
+  root.setAttribute('data-console-version', '2.1.9');
   root.innerHTML = `
     <section class="panel" aria-label="Leader and Deputy Center">
       <header class="head">
@@ -198,7 +243,7 @@
           <div class="muted" id="topic-toolbar-hint">Одно нажатие: консоль сама откроет меню инструментов, выберет команду и подтвердит только соответствующее действие.</div>
         </section>
         <main class="content" id="content"></main>
-        <footer class="footer"><span>VLADIMIR · LEADER & DEPUTY</span><span>v2.1.8 · GITHUB UPDATE</span></footer>
+        <footer class="footer"><span>VLADIMIR · LEADER & DEPUTY</span><span>v2.1.9 · MOBILE READY</span></footer>
       </div>
     </section>
     <button class="launch" data-act="open">♜ VLADIMIR · ЛД / ЗАМЫ</button>
