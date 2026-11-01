@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name         Vladimir Console — Matreshka RP (4.6.4 · leadership and player reply tracking)
+// @name         Vladimir Console — Matreshka RP (4.6.8 · mobile optimized)
 // @namespace    Vladimir_Sudarikov.AtelierConsole
-// @version      4.6.7
+// @version      4.6.8
 // @description  Персональная консоль: цвет ника точно берётся из текста плашки Egor_Andyfy; кнопка копирования образца убрана
 // @match        https://forum.matrp.ru/*
 // @match        http://forum.matrp.ru/*
@@ -163,8 +163,43 @@
     #${IDS.panel} .va340-sla-row-near{outline:1px solid #fbbf24aa!important;outline-offset:-1px!important}
     .va340-thread-overdue{display:inline-flex!important;margin:5px 0!important;padding:5px 9px!important;border:1px solid #fb7185!important;border-radius:8px!important;background:#7f1d1d!important;color:#fff!important;font:900 11px/1.3 Arial,sans-serif!important}
     .va340-thread-due{display:inline-flex!important;margin:5px 0!important;padding:5px 9px!important;border:1px solid #fbbf24!important;border-radius:8px!important;background:#78350f!important;color:#fff!important;font:800 11px/1.3 Arial,sans-serif!important}
-    @media(max-width:480px){#${IDS.panel} .va-reply-grid{grid-template-columns:1fr 1fr}} 
-    @media(max-width:480px){#${IDS.launcher}{left:auto!important;right:10px!important;top:10px!important}#${IDS.panel}{left:auto!important;width:calc(100vw - 20px)!important;max-height:calc(100vh - 70px)!important}#${IDS.panel} .va-body{max-height:calc(100vh - 125px)!important}}
+    @media(max-width:480px){#${IDS.panel} .va-reply-grid{grid-template-columns:1fr 1fr}}
+    @media(max-width:600px){
+      #${IDS.launcher}{left:auto!important;right:max(6px,env(safe-area-inset-right))!important;top:max(8px,env(safe-area-inset-top))!important;max-width:calc(100vw - 12px)!important;min-height:44px!important;padding:9px 12px!important;font-size:11px!important}
+      #${IDS.panel}{left:auto!important;right:6px!important;width:calc(100vw - 12px)!important;max-width:calc(100vw - 12px)!important;max-height:var(--va-mobile-panel-max-height,calc(100dvh - 90px))!important;border-radius:14px!important}
+      #${IDS.panel} .va-head{gap:7px!important;padding:9px 10px!important;min-height:54px!important}
+      #${IDS.panel} .va-brand{font-size:12px!important;letter-spacing:.04em!important}
+      #${IDS.panel} .va-sub{font-size:9px!important;overflow-wrap:anywhere!important}
+      #${IDS.panel} .va-head button{width:40px!important;height:40px!important;flex:0 0 40px!important;border-radius:11px!important;font-size:16px!important;touch-action:manipulation}
+      #${IDS.panel} .va-body{gap:10px!important;padding:10px!important;max-height:var(--va-mobile-body-max-height,calc(100dvh - 150px))!important;overflow-y:auto!important;overflow-x:hidden!important;touch-action:pan-y!important;-webkit-overflow-scrolling:touch!important}
+      #${IDS.panel} .va-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:7px!important}
+      #${IDS.panel} .va-btn{min-height:46px!important;padding:10px!important;font-size:12px!important;overflow-wrap:anywhere!important;touch-action:manipulation}
+      #${IDS.panel} .va-small{min-height:42px!important;padding:10px!important;font-size:12px!important;touch-action:manipulation}
+      #${IDS.panel} input,#${IDS.panel} textarea,#${IDS.panel} select{min-height:44px!important;padding:10px!important;font-size:16px!important}
+      #${IDS.panel} .va-row{gap:7px!important;flex-wrap:wrap!important}
+      #${IDS.panel} .va-row>*{min-width:0!important;flex:1 1 125px!important}
+      #${IDS.panel} .va-reply-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:7px!important}
+      #${IDS.panel} .va-reply{min-height:54px!important;padding:9px!important;font-size:11px!important;overflow-wrap:anywhere!important}
+      #${IDS.panel} .va340-prefix-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:7px!important}
+      #${IDS.panel} .va-footer-top,#${IDS.panel} .va-footer-bottom{align-items:flex-start!important;flex-wrap:wrap!important;gap:5px 9px!important}
+      #${IDS.panel} .va-footer-note{font-size:10px!important}
+      #${IDS.auth}{padding:max(10px,env(safe-area-inset-top)) 10px max(10px,env(safe-area-inset-bottom))!important;overflow-y:auto!important;align-items:start!important}
+      #${IDS.auth} .va-card{width:100%!important;max-width:440px!important;max-height:calc(100dvh - 20px)!important;overflow-y:auto!important;margin:auto!important;padding:18px!important}
+      #${IDS.auth} input{min-height:46px!important;font-size:16px!important}
+      #${IDS.auth} button{min-height:44px!important}
+    }
+    @media(max-width:360px){
+      #${IDS.panel} .va-grid{grid-template-columns:1fr!important}
+      #${IDS.panel} .va-reply-grid{grid-template-columns:1fr!important}
+      #${IDS.panel} .va340-prefix-grid{grid-template-columns:1fr!important}
+      #${IDS.panel} .va-row>*{flex-basis:100%!important}
+    }
+    @media(orientation:landscape) and (max-height:520px) and (max-width:900px){
+      #${IDS.panel}{max-height:var(--va-mobile-panel-max-height,calc(100dvh - 16px))!important}
+      #${IDS.panel} .va-body{max-height:var(--va-mobile-body-max-height,calc(100dvh - 90px))!important}
+      #${IDS.panel} .va-footer{gap:4px!important;padding:7px!important}
+      #${IDS.panel} .va-footer-note{display:none!important}
+    }
   `;
 
   const launcher = document.createElement('button');
@@ -256,7 +291,7 @@
       <section><div class="va-label">Личные заметки</div><textarea id="va320-notes" placeholder="Идеи, ссылки, напоминания…"></textarea><div class="va-row" style="margin-top:7px"><button class="va-small" id="va320-save-notes">Сохранить</button><button class="va-small" id="va320-clear-notes">Очистить</button></div></section>
       <section><div class="va-label">Персонализация</div><div class="va-row"><select id="va320-theme"><option value="obsidian">Obsidian · тёмная</option><option value="pearl">Pearl · светлая</option><option value="forest">Forest · зелёная</option></select><input id="va320-accent" type="color" aria-label="Акцентный цвет" style="max-width:50px;padding:3px"></div><button class="va-small" id="va320-reset-style" style="width:100%;margin-top:7px">Сбросить оформление</button></section>
       <div class="va-footer">
-        <div class="va-footer-top"><span class="va-footer-brand">✦ ATELIER CONSOLE · 4.6.7</span><span class="va-footer-state"><i></i> GITHUB · AUTOUPDATE</span></div>
+        <div class="va-footer-top"><span class="va-footer-brand">✦ ATELIER CONSOLE · 4.6.8</span><span class="va-footer-state"><i></i> GITHUB · AUTOUPDATE</span></div>
         <div class="va-footer-bottom"><span>Matreshka RP · автообновления через GitHub</span><span>ALT + M</span></div>
         <div class="va-footer-note">Шаблоны добавляют только текст ответа. Префиксы выбираются отдельно — так черновик не пропадает при вставке.</div>
       </div>
@@ -312,9 +347,15 @@
     const pos = clampPanelPosition(settings.top, settings.right);
     settings.top = pos.top;
     settings.right = pos.right;
-    panel.style.setProperty('top', `${pos.top}px`, 'important');
-    panel.style.setProperty('right', `${pos.right}px`, 'important');
+    const viewportHeight = window.visualViewport?.height || window.innerHeight;
+    const isMobileViewport = window.innerWidth <= 600;
+    const displayTop = isMobileViewport ? Math.min(pos.top, Math.max(8, viewportHeight - 180)) : pos.top;
+    const displayRight = isMobileViewport ? 6 : pos.right;
+    panel.style.setProperty('top', `${displayTop}px`, 'important');
+    panel.style.setProperty('right', `${displayRight}px`, 'important');
     panel.style.setProperty('left', 'auto', 'important');
+    panel.style.setProperty('--va-mobile-panel-max-height', `${Math.max(220, viewportHeight - displayTop - 8)}px`);
+    panel.style.setProperty('--va-mobile-body-max-height', `${Math.max(130, viewportHeight - displayTop - 88)}px`);
     if (save) saveSettings();
   }
   function movePanelVertically(delta) {
