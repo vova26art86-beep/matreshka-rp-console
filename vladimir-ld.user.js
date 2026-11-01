@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Vladimir | Leader & Deputy Center
 // @namespace    Vladimir_Sudarikov.MatreshkaTools
-// @version      2.1.9
-// @description  Vladimir Leader & Deputy Center with improved XenForo SLA date parsing.
+// @version      2.2.0
+// @description  Leader/deputy SLA tracking with manual per-topic review marks.
 // @match        https://forum.matrp.ru/*
 // @run-at       document-idle
 // @grant        none
@@ -21,6 +21,7 @@
   const PERSISTENT_ROLE_KEY = 'vldc_v2_remembered_role';
   const LAST_TAB_KEY = 'vldc_v2_last_tab';
   const PANEL_TOP_KEY = 'vldc_v2_panel_top';
+  const REVIEWED_THREADS_KEY = 'vldc_v2_reviewed_threads';
   const DEFAULT_PANEL_TOP = 12;
   const getSavedPanelTop = () => {
     try {
@@ -205,12 +206,19 @@
     .vldc-sla-chip.is-done{border-color:#34d399!important;background:#064e3b!important}
     .vldc-sla-chip.is-near{border-color:#fbbf24!important;background:#78350f!important}
     .vldc-sla-row-overdue{background-color:#7f1d1d12!important;outline:1px solid #fb718566!important;outline-offset:-1px!important}
+    #${APP_ID} .vldc-review-wrap{display:inline-flex;flex-wrap:wrap;align-items:center;gap:5px;margin:4px 0 2px 7px;vertical-align:middle}
+    #${APP_ID} .vldc-review-state{font:700 10px/1.35 Segoe UI,Arial,sans-serif;color:#a7f3d0}
+    #${APP_ID} .vldc-review-state.is-stale{color:#fcd34d}
+    #${APP_ID} .vldc-review-state.is-overdue{color:#fda4af}
+    #${APP_ID} .vldc-review-btn{border:1px solid #34d39988;border-radius:7px;background:#064e3b;color:#d1fae5;padding:3px 7px;font:700 10px/1.3 Segoe UI,Arial,sans-serif;cursor:pointer}
+    #${APP_ID} .vldc-review-thread-control{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:7px 0 10px}
+    #${APP_ID} .vldc-review-thread-control .vldc-review-wrap{margin:0}
   `;
   (document.head || document.documentElement).appendChild(slaCss);
 
   const root = document.createElement('div');
   root.id = APP_ID;
-  root.setAttribute('data-console-version', '2.1.9');
+  root.setAttribute('data-console-version', '2.2.0');
   root.innerHTML = `
     <section class="panel" aria-label="Leader and Deputy Center">
       <header class="head">
@@ -243,7 +251,7 @@
           <div class="muted" id="topic-toolbar-hint">Одно нажатие: консоль сама откроет меню инструментов, выберет команду и подтвердит только соответствующее действие.</div>
         </section>
         <main class="content" id="content"></main>
-        <footer class="footer"><span>VLADIMIR · LEADER & DEPUTY</span><span>v2.1.9 · MOBILE READY</span></footer>
+        <footer class="footer"><span>VLADIMIR · LEADER & DEPUTY</span><span>v2.2.0 · REVIEW MARKS</span></footer>
       </div>
     </section>
     <button class="launch" data-act="open">♜ VLADIMIR · ЛД / ЗАМЫ</button>
@@ -501,6 +509,89 @@
     else if (Number(badge.dataset.lastManagerReplyAt)) lines.push('В списке тем дата предыдущего ответа игрока не отображается');
     return lines.join(' · ');
   }
+
+  // Manual review marks are available to both the leader and deputy roles.
+  // They are stored only in this browser profile; no forum or spreadsheet data is modified.
+  function ldSlaThreadIdFromHref(href) {
+    let value = String(href || '');
+    try { value = decodeURIComponent(value); } catch {}
+    const match = value.match(/(?:[?&/])threads\/(?:[^/?#]*?\.)?(\d{3,})(?:[/?#&]|$)/i)
+      || value.match(/threads\/[^/?#]*?\.(\d{3,})(?:[/?#&]|$)/i);
+    return match?.[1] || '';
+  }
+  function ldSlaReadReviewMarks() {
+    try {
+      const value = JSON.parse(localStorage.getItem(REVIEWED_THREADS_KEY) || '{}');
+      return value && typeof value === 'object' && !Array.isArray(value) ? value : {};
+    } catch { return {}; }
+  }
+  function ldSlaReviewActivityAt(badge) {
+    return Number(badge?.dataset.lastReplyAt) || Number(badge?.dataset.createdAt) || 0;
+  }
+  function ldSlaRenderReviewControl(wrap, badge) {
+    if (!wrap || !badge) return;
+    const id = wrap.dataset.threadId || '';
+    const activityAt = ldSlaReviewActivityAt(badge);
+    const record = id ? ldSlaReadReviewMarks()[id] : null;
+    const fresh = !!record && Number(record.activityAt) === activityAt;
+    const overdue = badge.classList.contains('is-overdue');
+    const state = wrap.querySelector('.vldc-review-state');
+    const button = wrap.querySelector('.vldc-review-btn');
+    if (!state || !button) return;
+    state.className = 'vldc-review-state' + (fresh && overdue ? ' is-overdue' : !fresh && record ? ' is-stale' : '');
+    state.textContent = fresh
+      ? (overdue ? '✓ Тема проверена · есть просрочка' : '✓ Тема проверена · просрочек нет')
+      : record ? '↻ Появились новые сообщения · нужна проверка' : '○ Тема ещё не проверена';
+    button.textContent = fresh ? 'Снять отметку' : '✓ Отметить проверенной';
+    button.dataset.activityAt = String(activityAt);
+    button.dataset.overdue = overdue ? '1' : '0';
+    button.title = fresh && record?.by ? `Отметил: ${record.by} · ${record.role || 'роль не указана'}` : 'Отметка сохраняется в этом браузере';
+  }
+  function ldSlaEnsureReviewControl(container, badge, threadId, isThreadPage = false) {
+    if (!container || !badge || !threadId) return;
+    let wrap = container.querySelector(':scope > .vldc-review-wrap');
+    if (!wrap) {
+      wrap = document.createElement('span');
+      wrap.className = 'vldc-review-wrap';
+      const state = document.createElement('span'); state.className = 'vldc-review-state';
+      const button = document.createElement('button'); button.type = 'button'; button.className = 'vldc-review-btn'; button.dataset.vldcReview = '1';
+      wrap.append(state, button);
+      container.appendChild(wrap);
+    }
+    wrap.dataset.threadId = threadId;
+    wrap.dataset.activityAt = String(ldSlaReviewActivityAt(badge));
+    ldSlaRenderReviewControl(wrap, badge);
+  }
+  function ldSlaSaveReviewMark(threadId, activityAt, overdue) {
+    const marks = ldSlaReadReviewMarks();
+    const by = document.querySelector('.p-navgroup-link--user .username,.p-navgroup-link--user')?.textContent?.trim() || 'Пользователь форума';
+    marks[threadId] = { at: Date.now(), activityAt: Number(activityAt) || 0, by, role: ACCESS[activeRole]?.label || 'Лидерский состав', overdue: !!overdue };
+    const entries = Object.entries(marks).sort((a,b) => Number(b[1]?.at || 0) - Number(a[1]?.at || 0)).slice(0, 1200);
+    try { localStorage.setItem(REVIEWED_THREADS_KEY, JSON.stringify(Object.fromEntries(entries))); } catch {}
+  }
+  document.addEventListener('click', event => {
+    const button = event.target.closest?.('.vldc-review-btn[data-vldc-review="1"]');
+    if (!button) return;
+    event.preventDefault(); event.stopPropagation();
+    if (!activeRole || !ACCESS[activeRole]) { toast('Войди как лидер или заместитель, чтобы отмечать проверку темы.'); return; }
+    const wrap = button.closest('.vldc-review-wrap');
+    const threadId = wrap?.dataset.threadId || '';
+    const activityAt = Number(button.dataset.activityAt) || Number(wrap?.dataset.activityAt) || 0;
+    if (!threadId) { toast('Не удалось определить номер темы. Открой саму тему и попробуй снова.'); return; }
+    const marks = ldSlaReadReviewMarks();
+    const existing = marks[threadId];
+    if (existing && Number(existing.activityAt) === activityAt) {
+      delete marks[threadId];
+      try { localStorage.setItem(REVIEWED_THREADS_KEY, JSON.stringify(marks)); } catch {}
+      toast('Отметка проверки снята.');
+    } else {
+      const badge = wrap.closest('.structItem,.structItem--thread')?.querySelector('.vldc-sla-chip') || document.querySelector('.vldc-sla-thread-chip');
+      ldSlaSaveReviewMark(threadId, activityAt, badge?.classList.contains('is-overdue'));
+      toast(badge?.classList.contains('is-overdue') ? 'Тема отмечена проверенной. Просрочка есть.' : 'Тема проверена: просрочек нет.');
+    }
+    const badge = wrap.closest('.structItem,.structItem--thread')?.querySelector('.vldc-sla-chip') || document.querySelector('.vldc-sla-thread-chip');
+    if (badge) ldSlaRenderReviewControl(wrap, badge);
+  }, true);
   function ldSlaUpdateBadge(badge) {
     const createdAt = Number(badge?.dataset.createdAt);
     if (!Number.isFinite(createdAt)) return;
@@ -510,6 +601,8 @@
     badge.className = `vldc-sla-chip ${item.cls}`.trim();
     const row = badge.closest('.structItem--thread,.structItem');
     if (row) row.classList.toggle('vldc-sla-row-overdue', item.cls === 'is-overdue');
+    const reviewWrap = row?.querySelector('.vldc-review-wrap') || (badge.classList.contains('vldc-sla-thread-chip') ? document.querySelector('.vldc-review-thread-control .vldc-review-wrap') : null);
+    if (reviewWrap) ldSlaRenderReviewControl(reviewWrap, badge);
   }
   function ldSlaDecorateRow(row) {
     const title = row?.querySelector('.structItem-title,.contentRow-title,.block-row-main .contentRow-title');
@@ -533,6 +626,8 @@
     badge.dataset.lastPlayerReplyAuthor = role === 'player' ? (latest?.textContent?.trim() || '') : '';
     badge.dataset.lastManagerReplyAt = (role === 'leader' || role === 'admin') && Number.isFinite(latestAt) ? String(latestAt) : '';
     badge.dataset.lastManagerReplyRole = role;
+    const threadId = ldSlaThreadIdFromHref(link.href);
+    if (threadId) ldSlaEnsureReviewControl(title, badge, threadId);
     ldSlaBadges.add(badge); ldSlaUpdateBadge(badge); return true;
   }
   function ldSlaDecorateCurrentThread() {
@@ -548,6 +643,14 @@
     badge.dataset.staffReply = activity.answered ? '1' : '0';
     badge.dataset.clockAt = String(activity.clockAt || createdAt);
     for (const key of ['lastReplyAt','lastReplyRole','lastReplyAuthor','lastPlayerReplyAt','lastPlayerReplyAuthor','lastManagerReplyAt','lastManagerReplyRole']) badge.dataset[key] = String(activity[key] || '');
+    const threadId = ldSlaThreadIdFromHref(location.href);
+    let reviewControl = document.querySelector('.vldc-review-thread-control');
+    if (!reviewControl) {
+      reviewControl = document.createElement('div');
+      reviewControl.className = 'vldc-review-thread-control';
+      badge.insertAdjacentElement('afterend', reviewControl);
+    }
+    if (threadId) ldSlaEnsureReviewControl(reviewControl, badge, threadId, true);
     ldSlaBadges.add(badge); ldSlaUpdateBadge(badge);
   }
   function startLdSlaLazyObserver() {
