@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Vladimir | Leader & Deputy Center
 // @namespace    Vladimir_Sudarikov.MatreshkaTools
-// @version      2.3.1
+// @version      2.3.2
 // @description  Leader/deputy SLA tracking with manual per-topic review marks.
 // @match        https://forum.matrp.ru/*
 // @run-at       document-idle
@@ -46,7 +46,19 @@
     '532291': 'deputy', // konon_petrov
     '742975': 'deputy', // romka_kapterov
     '740394': 'deputy', // romka_kaiashnikov
-    '65921': 'deputy'  // timka_legendary (Timka_Escobar, Army deputy)
+    '65921': 'deputy', // timka_legendary (Timka_Escobar, Army deputy)
+    // OPG leaders
+    '390109': 'leader', // anatoly_white (Anatoly_White, Offniki)
+    '124513': 'leader', // ramil_pupkin (Amoasador_Dipseyz, Tambovskoe)
+    // OPG deputies
+    '691279': 'deputy', // miki-ivanov (Miki_Ivanov, Offniki)
+    '438781': 'deputy', // evelon_manti (Denis_Finka, Offniki)
+    '673256': 'deputy', // makitosha (Makitosha_Hamashima, Offniki)
+    '32310': 'deputy',  // kashiro_nakamoto (Valentin_Budeyko, Tambovskoe)
+    '162606': 'deputy', // blake-wengallbi (Lawden_Suarez, Tambovskoe)
+    '682314': 'deputy', // kiyoshu_murakami (Kiyoshi_Murakami, Kavkazskoe)
+    '233691': 'deputy', // harison_izumchanskiy (Harison_Izumchanskiy, Kavkazskoe)
+    '829310': 'deputy'  // uragan_kaizer (Aleksander_Kaizeer, Kavkazskoe)
   });
   const LAST_TAB_KEY = 'vldc_v2_last_tab';
   const PANEL_TOP_KEY = 'vldc_v2_panel_top';
@@ -247,7 +259,7 @@
 
   const root = document.createElement('div');
   root.id = APP_ID;
-  root.setAttribute('data-console-version', '2.3.1');
+  root.setAttribute('data-console-version', '2.3.2');
   root.innerHTML = `
     <section class="panel" aria-label="Leader and Deputy Center">
       <header class="head">
@@ -280,7 +292,7 @@
           <div class="muted" id="topic-toolbar-hint">Одно нажатие: консоль сама откроет меню инструментов, выберет команду и подтвердит только соответствующее действие.</div>
         </section>
         <main class="content" id="content"></main>
-        <footer class="footer"><span>VLADIMIR · LEADER & DEPUTY</span><span>v2.3.1 · AUTO ROLE</span></footer>
+        <footer class="footer"><span>VLADIMIR · LEADER & DEPUTY</span><span>v2.3.2 · AUTO ROLE</span></footer>
       </div>
     </section>
     <button class="launch" data-act="open">♜ VLADIMIR · ЛД / ЗАМЫ</button>
