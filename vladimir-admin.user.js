@@ -803,11 +803,11 @@
     for (const anchor of scope.querySelectorAll('a.username[href*="members/"], .memberHeader-name a[href*="members/"]')) anchors.add(anchor);
     for (const anchor of anchors) {
       if (!anchor.isConnected || anchor.closest('#' + IDS.panel) || anchor.closest('#' + IDS.auth) || anchor.querySelector('img,svg')) continue;
-      const match = (anchor.getAttribute('href') || '').match(/members\\/[^/?#]*\\.([0-9]+)(?:\\/|[?#]|$)/i);
+      const match = (anchor.getAttribute('href') || '').match(/members\/[^/?#]*\.([0-9]+)(?:\/|[?#]|$)/i);
       if (!match) continue;
       const info = VA_LEADER_DEPUTY_BADGES[match[1]];
       if (!info || !['leader','deputy'].includes(info.role)) continue;
-      const username = (anchor.textContent || '').replace(/\\s+/g,' ').trim();
+      const username = (anchor.textContent || '').replace(/\s+/g,' ').trim();
       if (!username || username.length > 70) continue;
       let badge = anchor.nextElementSibling;
       while (badge?.classList.contains('va-ld-role-badge') && badge.dataset.userId === match[1]) {
