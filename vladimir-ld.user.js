@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Vladimir | Leader & Deputy Center
 // @namespace    Vladimir_Sudarikov.MatreshkaTools
-// @version      2.4.0
+// @version      2.4.1
 // @description  Leader/deputy SLA tracking with manual per-topic review marks.
 // @match        https://forum.matrp.ru/*
 // @run-at       document-idle
@@ -59,7 +59,8 @@
     '162606': 'deputy', // blake-wengallbi (Lawden_Suarez, Tambovskoe)
     '682314': 'deputy', // kiyoshu_murakami (Kiyoshi_Murakami, Kavkazskoe)
     '233691': 'deputy', // harison_izumchanskiy (Harison_Izumchanskiy, Kavkazskoe)
-    '829310': 'deputy'  // uragan_kaizer (Aleksander_Kaizeer, Kavkazskoe)
+    '829310': 'deputy', // uragan_kaizer (Aleksander_Kaizeer, Kavkazskoe)
+    '341059': 'observer' // vladimir_sudarikov (Vladimir Sudarikov, observer)
   });
   const LAST_TAB_KEY = 'vldc_v2_last_tab';
   const PANEL_TOP_KEY = 'vldc_v2_panel_top';
@@ -265,7 +266,7 @@
 
   const root = document.createElement('div');
   root.id = APP_ID;
-  root.setAttribute('data-console-version', '2.4.0');
+  root.setAttribute('data-console-version', '2.4.1');
   root.innerHTML = `
     <section class="panel" aria-label="Leader and Deputy Center">
       <header class="head">
@@ -298,7 +299,7 @@
           <div class="muted" id="topic-toolbar-hint">Одно нажатие: консоль сама откроет меню инструментов, выберет команду и подтвердит только соответствующее действие.</div>
         </section>
         <main class="content" id="content"></main>
-        <footer class="footer"><span>VLADIMIR · LEADER & DEPUTY</span><span>v2.4.0 · OBSERVER ACCESS</span></footer>
+        <footer class="footer"><span>VLADIMIR · LEADER & DEPUTY</span><span>v2.4.1 · OBSERVER AUTO ROLE</span></footer>
       </div>
     </section>
     <button class="launch" data-act="open">♜ VLADIMIR · ЛД / ЗАМЫ</button>
