@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Vladimir Console — Matreshka RP (4.6.4 · leadership and player reply tracking)
 // @namespace    Vladimir_Sudarikov.AtelierConsole
-// @version      4.7.1
+// @version      4.7.2
 // @description  Персональная консоль: цвет ника точно берётся из текста плашки Egor_Andyfy; кнопка копирования образца убрана
 // @match        https://forum.matrp.ru/*
 // @match        http://forum.matrp.ru/*
@@ -42,7 +42,7 @@
   const DEFAULTS = { theme: 'obsidian', accent: '#a78bfa', notes: '', minimized: false, top: 82, right: 18, replyName: '', replyReason: '', cacheEnabled: true, cacheTtlMinutes: 30 };
 
   if (location.hostname !== 'forum.matrp.ru') {
-    console.warn('[Vladimir Console 4.7.1] Скрипт рассчитан на https://forum.matrp.ru/');
+    console.warn('[Vladimir Console 4.7.2] Скрипт рассчитан на https://forum.matrp.ru/');
     return;
   }
   if (document.getElementById(IDS.launcher)) return;
@@ -71,7 +71,7 @@
   const style = document.createElement('style');
   style.id = IDS.style;
   style.textContent = `
-    #${IDS.launcher}{all:initial!important;position:fixed!important;top:auto!important;left:auto!important;right:16px!important;bottom:12px!important;z-index:2147483647!important;display:flex!important;align-items:center!important;gap:9px!important;padding:10px 15px!important;border:1px solid #ffffff50!important;border-radius:14px!important;background:linear-gradient(115deg,#c4b5fd,#75e5cf)!important;color:#171322!important;font:900 12px/1.2 Arial,sans-serif!important;letter-spacing:.08em!important;box-shadow:0 10px 30px #0009!important;cursor:pointer!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important}
+    #${IDS.launcher}{all:initial!important;position:fixed!important;top:auto!important;left:auto!important;right:16px!important;top:16px!important;bottom:auto!important;z-index:2147483647!important;display:flex!important;align-items:center!important;gap:9px!important;padding:10px 15px!important;border:1px solid #ffffff50!important;border-radius:14px!important;background:linear-gradient(115deg,#c4b5fd,#75e5cf)!important;color:#171322!important;font:900 12px/1.2 Arial,sans-serif!important;letter-spacing:.08em!important;box-shadow:0 10px 30px #0009!important;cursor:pointer!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important}
     #${IDS.launcher}:hover{filter:brightness(1.08)!important;transform:translateY(-1px)}
     #${IDS.launcher} .vmark{display:grid;place-items:center;width:25px;height:25px;border-radius:8px;background:#ffffff8a;font-size:12px}
     #${IDS.panel},#${IDS.auth}{font-family:Arial,sans-serif!important;box-sizing:border-box!important;color:#f4f1ff}
@@ -89,6 +89,11 @@
     #${IDS.panel} .va-head button{width:30px;height:30px;border:1px solid var(--va-line);border-radius:9px;background:transparent;color:var(--va-text);flex:0 0 30px} #${IDS.panel} .va-head button:hover{background:var(--va-card);filter:brightness(1.12)}
     #${IDS.panel} .va-body{display:grid;gap:12px;padding:13px;max-height:calc(100vh - 155px);overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;scrollbar-width:thin; -webkit-overflow-scrolling:touch}
     #${IDS.panel} .va-body[hidden]{display:none!important}
+    #${IDS.panel} .va-bottom-resize{height:12px;position:absolute;left:0;right:0;bottom:0;z-index:5;cursor:ns-resize;display:flex;align-items:center;justify-content:center;background:linear-gradient(transparent,var(--va-bg))}
+    #${IDS.panel} .va-bottom-resize:after{content:"";width:38px;height:3px;border-radius:3px;background:var(--va-muted);opacity:.65}
+    #${IDS.panel}.va-user-resized{display:flex!important;flex-direction:column!important}
+    #${IDS.panel}.va-user-resized .va-body{flex:1 1 auto;min-height:0;max-height:none!important}
+
     #${IDS.panel} .va-label{margin:0 0 7px;color:var(--va-muted);font-size:10px;font-weight:700;letter-spacing:.13em;text-transform:uppercase}
     #${IDS.panel} .va-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
     #${IDS.panel} .va-btn{min-height:40px;padding:9px 10px;border:1px solid var(--va-line);border-radius:10px;background:var(--va-card);color:var(--va-text);text-align:left}
@@ -164,7 +169,7 @@
     .va340-thread-overdue{display:inline-flex!important;margin:5px 0!important;padding:5px 9px!important;border:1px solid #fb7185!important;border-radius:8px!important;background:#7f1d1d!important;color:#fff!important;font:900 11px/1.3 Arial,sans-serif!important}
     .va340-thread-due{display:inline-flex!important;margin:5px 0!important;padding:5px 9px!important;border:1px solid #fbbf24!important;border-radius:8px!important;background:#78350f!important;color:#fff!important;font:800 11px/1.3 Arial,sans-serif!important}
     @media(max-width:480px){#${IDS.panel} .va-reply-grid{grid-template-columns:1fr 1fr}} 
-    @media(max-width:480px){#${IDS.launcher}{left:auto!important;right:10px!important;top:auto!important;bottom:10px!important}#${IDS.panel}{left:auto!important;width:calc(100vw - 20px)!important;max-height:calc(100vh - 70px)!important}#${IDS.panel} .va-body{max-height:calc(100vh - 125px)!important}}
+    @media(max-width:480px){#${IDS.launcher}{left:auto!important;right:10px!important;top:10px!important;bottom:auto!important}#${IDS.panel}{left:auto!important;width:calc(100vw - 20px)!important;max-height:calc(100vh - 70px)!important}#${IDS.panel} .va-body{max-height:calc(100vh - 125px)!important}}
   `;
 
   const launcher = document.createElement('button');
@@ -176,7 +181,7 @@
   const panel = document.createElement('section');
   panel.id = IDS.panel;
   panel.innerHTML = `
-    <header class="va-head" id="va320-drag"><div><div class="va-brand">✦ VLADIMIR CONSOLE</div><div class="va-sub">${OWNER} · Matreshka RP</div></div><div class="va-row" style="flex:0 0 auto"><button id="va320-up" type="button" title="Переместить панель вверх">↑</button><button id="va320-down" type="button" title="Переместить панель вниз">↓</button><button id="va320-min" type="button" title="Свернуть">−</button><button id="va320-close" type="button" title="Закрыть">×</button></div></header>
+    <header class="va-head" id="va320-drag"><div><div class="va-brand">✦ VLADIMIR CONSOLE</div><div class="va-sub">${OWNER} · Matreshka RP</div></div><div class="va-row" style="flex:0 0 auto"><button id="va320-min" type="button" title="Свернуть">−</button><button id="va320-close" type="button" title="Закрыть">×</button></div></header>
     <main class="va-body" id="va320-body">
       <section><div class="va-label">Быстрые действия</div><div class="va-grid"><button class="va-btn primary" id="va320-url">↗ Копировать URL<span class="va-caption">Адрес страницы</span></button><button class="va-btn" id="va320-title">▤ Заголовок<span class="va-caption">Название страницы</span></button><button class="va-btn" id="va320-selection">⌁ Выделенный текст<span class="va-caption">В буфер обмена</span></button><button class="va-btn" id="va320-profile">◎ Мой профиль<span class="va-caption">Найти профиль владельца</span></button></div></section>
       <section><div class="va-label">Поиск по открытой странице</div><div class="va-row"><input id="va320-search" placeholder="Что найти на странице…"><button class="va-small" id="va320-find">Найти</button></div><div class="va-status" id="va320-status">Панель готова.</div></section>
@@ -260,7 +265,8 @@
         <div class="va-footer-bottom"><span>Matreshka RP · личная панель</span><span>ALT + M</span></div>
         <div class="va-footer-note">Шаблоны добавляют только текст ответа. Префиксы выбираются отдельно — так черновик не пропадает при вставке.</div>
       </div>
-    </main>`;
+    </main>
+    <div class="va-bottom-resize" id="va320-resize" title="Потяните нижний край, чтобы изменить высоту панели"></div>`;
 
   const auth = document.createElement('div');
   auth.id = IDS.auth;
@@ -316,10 +322,6 @@
     panel.style.setProperty('right', `${pos.right}px`, 'important');
     panel.style.setProperty('left', 'auto', 'important');
     if (save) saveSettings();
-  }
-  function movePanelVertically(delta) {
-    settings.top = (Number(settings.top) || 8) + delta;
-    applyPanelPosition(true);
   }
   function enablePanelDragging() {
     const dragHandle = inPanel('va320-drag');
@@ -1888,7 +1890,7 @@
       statusNode.textContent = 'Префикс «' + chosenLabel + '» сохранён.' + stateSuffix + ' Шаблоны ответа не изменяются.';
       logActivity('Префикс сохранён: ' + chosenLabel + (threadStateResult?.message ? ' · ' + threadStateResult.message : ''));
     } catch (error) {
-      console.error('[Vladimir Console 4.7.1] Prefix error:', error);
+      console.error('[Vladimir Console 4.7.2] Prefix error:', error);
       statusNode.textContent = 'Ошибка префикса: ' + (error?.message || String(error)) + '. Для подробностей открой F12 → Console.';
     }
   }
@@ -2181,7 +2183,7 @@
       inPanel('va330-reply-status').textContent = 'Ответ «' + label + '» добавлен в редактор. Проверь текст перед отправкой.';
       logActivity(label + ' · вставлено');
     } catch (error) {
-      console.warn('[Vladimir Console 4.7.1] Не удалось вставить форматированный ответ:', error);
+      console.warn('[Vladimir Console 4.7.2] Не удалось вставить форматированный ответ:', error);
       copyText(bbcode);
       inPanel('va330-reply-status').textContent = 'Автовставка не сработала — BBCode скопирован, вставь Ctrl+V.';
       logActivity(label + ' · скопировано');
@@ -2233,7 +2235,7 @@
     });
     const names = editForms[0] ? [...editForms[0].options].map(o => (o.textContent || '').trim()).filter(Boolean) : [];
     inPanel('va340-prefix-status').textContent = 'Тема: ' + (isThreadUrl() ? 'распознана' : 'не распознана') + ' · селектов prefix_id: ' + candidates.length + ' · редакторных селектов: ' + editForms.length + ' · варианты: ' + (names.join(' / ') || 'не найдены');
-    console.info('[Vladimir Console 4.7.1] Prefix diagnostic', { href: location.href, candidates, editForms, options: names });
+    console.info('[Vladimir Console 4.7.2] Prefix diagnostic', { href: location.href, candidates, editForms, options: names });
   });
   inPanel('va340-scan').addEventListener('click', scanSlaTopics);
   inPanel('va340-current').addEventListener('click', inspectCurrentThread);
@@ -2288,8 +2290,34 @@
   inPanel('va320-theme').addEventListener('change', () => { settings.theme = inPanel('va320-theme').value; applyTheme(); saveSettings(); setStatus('Тема изменена.'); });
   inPanel('va320-accent').addEventListener('input', () => { settings.accent = inPanel('va320-accent').value; panel.style.setProperty('--va-accent', settings.accent); saveSettings(); });
   inPanel('va320-reset-style').addEventListener('click', () => { settings.theme = DEFAULTS.theme; settings.accent = DEFAULTS.accent; applyTheme(); saveSettings(); setStatus('Стандартное оформление восстановлено.'); });
-  inPanel('va320-up').addEventListener('click', () => movePanelVertically(-55));
-  inPanel('va320-down').addEventListener('click', () => movePanelVertically(55));
+  (function enableBottomResize() {
+    const handle = inPanel('va320-resize');
+    const body = inPanel('va320-body');
+    if (!handle || !body || handle.dataset.ready === '1') return;
+    handle.dataset.ready = '1';
+    let startY = 0, startHeight = 0;
+    handle.addEventListener('pointerdown', event => {
+      if (event.button !== 0) return;
+      event.preventDefault();
+      startY = event.clientY;
+      startHeight = panel.getBoundingClientRect().height;
+      panel.classList.add('va-user-resized');
+      panel.style.height = startHeight + 'px';
+      const move = e => {
+        const maxHeight = Math.max(180, window.innerHeight - Math.max(8, Number(settings.top) || 8) - 8);
+        const nextHeight = Math.max(180, Math.min(maxHeight, startHeight + (e.clientY - startY)));
+        panel.style.height = nextHeight + 'px';
+        body.style.maxHeight = 'none';
+      };
+      const up = () => {
+        document.removeEventListener('pointermove', move);
+        document.removeEventListener('pointerup', up);
+        saveSettings();
+      };
+      document.addEventListener('pointermove', move);
+      document.addEventListener('pointerup', up, { once: true });
+    });
+  })();
   inPanel('va320-min').addEventListener('click', () => { settings.minimized = !settings.minimized; inPanel('va320-body').hidden = settings.minimized; inPanel('va320-min').textContent = settings.minimized ? '+' : '−'; saveSettings(); });
   inPanel('va320-close').addEventListener('click', () => panel.classList.remove('va-show'));
   enablePanelDragging();
