@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Vladimir | Leader & Deputy Center
 // @namespace    Vladimir_Sudarikov.MatreshkaTools
-// @version      2.2.0
+// @version      2.3.0
 // @description  Leader/deputy SLA tracking with manual per-topic review marks.
 // @match        https://forum.matrp.ru/*
 // @run-at       document-idle
@@ -18,7 +18,35 @@
   const PROFILE_SOURCE_NAME = 'Vladimir_Sudarikov';
   const PROFILE_DISPLAY_NAME = 'Бог всея Руси';
   const SESSION_KEY = 'vldc_v2_authenticated_role'; // legacy session key
-  const PERSISTENT_ROLE_KEY = 'vldc_v2_remembered_role';
+  const PERSISTENT_ROLE_KEY = 'vldc_v2_remembered_role'; // legacy key; no longer used to restore a role across different forum accounts
+  const ACCOUNT_ROLE_KEY_PREFIX = 'vldc_v2_role_forum_user_';
+  const ACCOUNT_ROLE_BY_ID = Object.freeze({
+    // Leaders (LD) — XenForo member IDs from the supplied roster.
+    '337247': 'leader', // Slaughter_Luxorize
+    '61846': 'leader',  // diablo_morris
+    '665168': 'leader', // leonid_moonless
+    '395998': 'leader', // hamilton_hill
+    '710153': 'leader', // damir_ulyanov
+    '209918': 'leader', // hassbula_macalister
+    '233306': 'leader', // johnny_heinz
+    // Deputies — XenForo member IDs from the supplied roster.
+    '760431': 'deputy', // _egor_klimov_
+    '604565': 'deputy', // timofi_mounless
+    '743229': 'deputy', // artem_chmelev
+    '507995': 'deputy', // ilya_requzsex
+    '649359': 'deputy', // eva_kuzmina
+    '631650': 'deputy', // artem_huligans
+    '513640': 'deputy', // denzel_pistoletov
+    '217195': 'deputy', // alexander_respix
+    '479415': 'deputy', // marik_marlborov
+    '722676': 'deputy', // vova_voronov
+    '281259': 'deputy', // angel_rogalev
+    '594678': 'deputy', // gleb_volckov
+    '587600': 'deputy', // mihail-zel
+    '532291': 'deputy', // konon_petrov
+    '742975': 'deputy', // romka_kapterov
+    '740394': 'deputy'  // romka_kaiashnikov
+  });
   const LAST_TAB_KEY = 'vldc_v2_last_tab';
   const PANEL_TOP_KEY = 'vldc_v2_panel_top';
   const REVIEWED_THREADS_KEY = 'vldc_v2_reviewed_threads';
@@ -218,7 +246,7 @@
 
   const root = document.createElement('div');
   root.id = APP_ID;
-  root.setAttribute('data-console-version', '2.2.0');
+  root.setAttribute('data-console-version', '2.3.0');
   root.innerHTML = `
     <section class="panel" aria-label="Leader and Deputy Center">
       <header class="head">
@@ -231,7 +259,7 @@
         <label class="field"><span>Пароль для выбранной роли</span><input id="password" type="password" autocomplete="current-password" placeholder="Введите пароль"></label>
         <button class="primary" data-act="login">Войти</button>
         <div class="error" id="login-error"></div>
-        <div class="hint">У ЛД и заместителя разные пароли. После первого успешного входа выбранная роль запоминается в этом браузере и не запрашивает пароль при следующих посещениях. Для смены роли нажми кнопку выхода. Данные входа не дают прав форума.</div>
+        <div class="hint">Если аккаунт форума есть в списке ЛД/заместителей, роль назначается автоматически по ID профиля. Для остальных аккаунтов используется отдельный вход; сохранённая роль привязана к конкретному аккаунту, а не ко всему браузеру. Данные входа не дают прав форума.</div>
       </div>
       <div id="workspace" hidden>
         <nav class="tabs">
@@ -251,7 +279,7 @@
           <div class="muted" id="topic-toolbar-hint">Одно нажатие: консоль сама откроет меню инструментов, выберет команду и подтвердит только соответствующее действие.</div>
         </section>
         <main class="content" id="content"></main>
-        <footer class="footer"><span>VLADIMIR · LEADER & DEPUTY</span><span>v2.2.0 · REVIEW MARKS</span></footer>
+        <footer class="footer"><span>VLADIMIR · LEADER & DEPUTY</span><span>v2.3.0 · AUTO ROLE</span></footer>
       </div>
     </section>
     <button class="launch" data-act="open">♜ VLADIMIR · ЛД / ЗАМЫ</button>
@@ -336,8 +364,22 @@
       ? 'Одно нажатие в консоли открывает меню XenForo, выбирает действие и подтверждает его, если форум показывает подтверждение.'
       : 'Кнопки всегда на виду. Для их применения открой конкретную тему форума.';
   }
-  // Restore the selected role across page reloads and browser restarts.
-  let activeRole = localStorage.getItem(PERSISTENT_ROLE_KEY) || sessionStorage.getItem(SESSION_KEY) || '';
+  // Identify the currently signed-in XenForo member; role is derived from member ID, not game nickname.
+  function detectForumUserId() {
+    const candidates = document.querySelectorAll('.p-navgroup-link--user[href], .p-navgroup-link--user a[href], .p-navgroup a[href*="members/"]');
+    for (const node of candidates) {
+      const href = node.getAttribute('href') || '';
+      const dataId = node.getAttribute('data-user-id') || node.getAttribute('data-member-id');
+      if (dataId && Number.isInteger(Number(dataId)) && Number(dataId) > 0) return String(dataId);
+      const match = href.match(/[.]([0-9]+)(?:$|[/?#])/);
+      if (match && href.includes('members/')) return match[1];
+    }
+    return '';
+  }
+  const CURRENT_FORUM_USER_ID = detectForumUserId();
+  const AUTO_ROLE = ACCOUNT_ROLE_BY_ID[CURRENT_FORUM_USER_ID] || '';
+  // Never reuse a global remembered role: it could give a deputy the LD view on a shared browser.
+  let activeRole = AUTO_ROLE || (CURRENT_FORUM_USER_ID ? localStorage.getItem(`${ACCOUNT_ROLE_KEY_PREFIX}${CURRENT_FORUM_USER_ID}`) : '') || '';
   if (!ACCESS[activeRole]) activeRole = '';
   let toastTimer = 0;
 
@@ -359,16 +401,28 @@
 
   function setRole(role) {
     activeRole = role;
-    localStorage.setItem(PERSISTENT_ROLE_KEY, role);
+    try {
+      localStorage.removeItem(PERSISTENT_ROLE_KEY);
+      if (CURRENT_FORUM_USER_ID) localStorage.setItem(`${ACCOUNT_ROLE_KEY_PREFIX}${CURRENT_FORUM_USER_ID}`, role);
+    } catch {}
     sessionStorage.removeItem(SESSION_KEY);
-    $('#role-label').textContent = `${ACCESS[role].label} · персональный доступ`; 
+    const loginMode = AUTO_ROLE ? 'автовход по аккаунту форума' : (CURRENT_FORUM_USER_ID ? 'персональный доступ' : 'вход до конца вкладки');
+    $('#role-label').textContent = `${ACCESS[role].label} · ${loginMode}`;
     $('#login').hidden = true;
     $('#workspace').hidden = false;
     renderTab(sessionStorage.getItem(LAST_TAB_KEY) || 'common');
   }
   function logout() {
+    if (AUTO_ROLE) {
+      setRole(AUTO_ROLE);
+      toast('Роль определяется аккаунтом форума и не переключается вручную.');
+      return;
+    }
     activeRole = '';
-    localStorage.removeItem(PERSISTENT_ROLE_KEY);
+    try {
+      localStorage.removeItem(PERSISTENT_ROLE_KEY);
+      if (CURRENT_FORUM_USER_ID) localStorage.removeItem(`${ACCOUNT_ROLE_KEY_PREFIX}${CURRENT_FORUM_USER_ID}`);
+    } catch {}
     sessionStorage.removeItem(SESSION_KEY);
     $('#workspace').hidden = true;
     $('#login').hidden = false;
@@ -986,6 +1040,10 @@
     if (btn.dataset.act === 'login') {
       const role = $('#role').value;
       const password = $('#password').value;
+      if (AUTO_ROLE && role !== AUTO_ROLE) {
+        $('#login-error').textContent = `Для этого аккаунта форума автоматически назначена роль «${ACCESS[AUTO_ROLE].label}».`;
+        return;
+      }
       btn.disabled = true;
       try {
         if (await verifyPassword(password, role)) { $('#login-error').textContent = ''; $('#password').value = ''; setRole(role); toast(`Вход: ${ACCESS[role].label}`); }
