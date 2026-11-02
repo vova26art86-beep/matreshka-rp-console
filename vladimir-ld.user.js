@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Vladimir | Leader & Deputy Center
 // @namespace    Vladimir_Sudarikov.MatreshkaTools
-// @version      2.5.5
+// @version      2.5.6
 // @description  Leader/deputy SLA tracking with manual per-topic review marks.
 // @match        https://forum.matrp.ru/*
 // @run-at       document-idle
@@ -147,7 +147,7 @@
   css.textContent = `
     #${APP_ID}, #${APP_ID} * { box-sizing:border-box; }
     .vldc-profile-display-name { color:#f472b6 !important; font-weight:800 !important; letter-spacing:.1px !important; text-shadow:0 0 10px #ec489944 !important; }
-    .vldc-role-badge { display:table; width:max-content; max-width:min(240px,100%); margin:0 0 3px; padding:2px 7px; border:1px solid; border-radius:999px; font:800 8px/1.25 Inter,Segoe UI,Arial,sans-serif; letter-spacing:.45px; text-transform:uppercase; white-space:normal; text-align:center; box-shadow:0 2px 7px #0002; pointer-events:none; }
+    .vldc-role-badge { display:inline-block; vertical-align:middle; width:max-content; max-width:min(180px,100%); margin:0 0 0 5px; padding:1px 6px; border:1px solid; border-radius:999px; font:800 8px/1.2 Inter,Segoe UI,Arial,sans-serif; letter-spacing:.35px; text-transform:uppercase; white-space:nowrap; text-align:center; box-shadow:0 1px 4px #0002; pointer-events:none; }
     .vldc-role-badge--leader { color:#ffe8b8; border-color:#d6ad5d99; background:linear-gradient(110deg,#9a6a25e8,#68431fe8); }
     .vldc-role-badge--deputy { color:#dbeafe; border-color:#77a8e899; background:linear-gradient(110deg,#315a91ed,#483d82ed); }
     .vldc-role-badge--observer { color:#ffe0f2; border-color:#df83b899; background:linear-gradient(110deg,#8e356ced,#632f82ed); }
@@ -418,9 +418,9 @@
       if (!username || username.length > 70) continue;
 
       // Remove adjacent duplicate badges for this member, then keep exactly one.
-      let badge = anchor.previousElementSibling;
+      let badge = anchor.nextElementSibling;
       while (badge?.classList.contains('vldc-role-badge') && badge.dataset.userId === match[1]) {
-        const previous = badge.previousElementSibling;
+        const previous = badge.nextElementSibling;
         badge.remove();
         badge = previous;
       }
@@ -428,7 +428,7 @@
         badge = document.createElement('span');
         badge.className = 'vldc-role-badge';
         badge.dataset.userId = match[1];
-        anchor.insertAdjacentElement('beforebegin', badge);
+        anchor.insertAdjacentElement('afterend', badge);
       }
       badge.className = 'vldc-role-badge vldc-role-badge--' + info.role;
       badge.dataset.userId = match[1];
@@ -936,25 +936,37 @@
     else renderTools();
   }
 
+  const ORGANIZATION_URLS = {
+    'Правительство': 'https://forum.matrp.ru/index.php?forums/pravitelstvo-oblasti.3196/',
+    'Армия': 'https://forum.matrp.ru/index.php?forums/armia.3197/',
+    'Городская больница': 'https://forum.matrp.ru/index.php?forums/gorodskaa-bolnica.3198/',
+    'ГТРК «Темп»': 'https://forum.matrp.ru/index.php?forums/gtrk-temp.3199/',
+    'Полиция': 'https://forum.matrp.ru/index.php?forums/policia.3200/',
+    'СГБ': 'https://forum.matrp.ru/index.php?forums/sgb.3201/',
+    'МЧС': 'https://forum.matrp.ru/index.php?forums/mcs.3202/',
+    'ОПГ «Оффники»': 'https://forum.matrp.ru/index.php?forums/opg-offniki.3204/',
+    'ОПГ «Тамбовское»': 'https://forum.matrp.ru/index.php?forums/opg-tambovskoe.3205/',
+    'ОПГ «Кавказское»': 'https://forum.matrp.ru/index.php?forums/opg-kavkazskoe.3206/'
+  };
+
   function renderOrganizations() {
     const stateOrgs = ['Правительство', 'Армия', 'Полиция', 'СГБ', 'МЧС', 'Городская больница', 'ГТРК «Темп»'];
     const opgOrgs = ['ОПГ «Оффники»', 'ОПГ «Тамбовское»', 'ОПГ «Кавказское»'];
-    const linkFor = name => 'https://forum.matrp.ru/index.php?search/&q=' + encodeURIComponent('Матрешка 30 ' + name) + '&t=post';
+    const linkFor = name => ORGANIZATION_URLS[name] || 'https://forum.matrp.ru/index.php?forums/';
     const card = (name, desc) => `<a class="link" href="${linkFor(name)}" target="_blank" rel="noopener noreferrer"><span>${esc(name)}<small>${esc(desc)}</small></span><b>↗</b></a>`;
     content.innerHTML = `
       <div class="section">ОРГАНИЗАЦИИ · СЕРВЕР №30</div>
-      <div class="note">Выбери организацию и нажми «Перейти» — откроется поиск по её темам сервера №30.</div>
+      <div class="note">Выбери организацию — откроется её прямой раздел форума.</div>
       <div class="org-jump">
         <label class="field"><span>Перейти к организации</span><select id="organization-select">${[...stateOrgs, ...opgOrgs].map(name => `<option value="${esc(name)}">${esc(name)}</option>`).join('')}</select></label>
         <button class="action info" data-org-go>Перейти ↗</button>
       </div>
       <div class="group"><div class="section">ГОСУДАРСТВЕННЫЕ ОРГАНИЗАЦИИ</div>
-        ${stateOrgs.map(name => card(name, 'Найти раздел и темы организации на сервере №30')).join('')}
+        ${stateOrgs.map(name => card(name, 'Открыть прямой раздел организации')).join('')}
       </div>
       <div class="group"><div class="section">ОРГАНИЗОВАННЫЕ ПРЕСТУПНЫЕ ГРУППИРОВКИ</div>
         ${opgOrgs.map(name => card(name, 'Найти раздел и темы организации на сервере №30')).join('')}
       </div>
-      <div class="hint">Ссылки ведут в поиск форума, а не на неподтверждённые адреса подразделов. Если структура разделов изменится, поиск продолжит помогать находить актуальные темы.</div>
     `;
   }
 
@@ -1225,7 +1237,7 @@
     if (btn.dataset.orgGo !== undefined) {
       const select = $('#organization-select');
       const name = select?.value;
-      if (name) window.open('https://forum.matrp.ru/index.php?search/&q=' + encodeURIComponent('Матрешка 30 ' + name) + '&t=post', '_blank', 'noopener');
+      if (name && ORGANIZATION_URLS[name]) window.open(ORGANIZATION_URLS[name], '_blank', 'noopener');
       return;
     }
     if (btn.dataset.topic) {
