@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Vladimir | Leader & Deputy Center
 // @namespace    Vladimir_Sudarikov.MatreshkaTools
-// @version      2.5.2
+// @version      2.5.3
 // @description  Leader/deputy SLA tracking with manual per-topic review marks.
 // @match        https://forum.matrp.ru/*
 // @run-at       document-idle
@@ -401,11 +401,14 @@
 
   function decorateForumMemberBadges(scope = document) {
     if (!scope?.querySelectorAll) return;
-    const anchors = [];
-    if (scope.matches?.('a[href*="members/"]')) anchors.push(scope);
-    anchors.push(...scope.querySelectorAll('a[href*="members/"]'));
+    // Only actual username links, not every repeated profile link/avatar/signature.
+    const anchors = new Set();
+    if (scope.matches?.('a.username[href*="members/"], .memberHeader-name a[href*="members/"]')) anchors.add(scope);
+    for (const anchor of scope.querySelectorAll('a.username[href*="members/"], .memberHeader-name a[href*="members/"]')) {
+      anchors.add(anchor);
+    }
     for (const anchor of anchors) {
-      if (!anchor.isConnected || anchor.closest(`#${APP_ID}`) || anchor.querySelector('img,svg')) continue;
+      if (!anchor.isConnected || anchor.closest(\`#\${APP_ID}\`) || anchor.querySelector('img,svg')) continue;
       const href = anchor.getAttribute('href') || '';
       const match = href.match(/members\/[^/?#]*\.([0-9]+)(?:\/|[?#]|$)/i);
       if (!match) continue;
@@ -413,16 +416,24 @@
       if (!info) continue;
       const username = (anchor.textContent || '').replace(/\s+/g, ' ').trim();
       if (!username || username.length > 70) continue;
+
+      // Remove adjacent duplicate badges for this member, then keep exactly one.
       let badge = anchor.previousElementSibling;
+      while (badge?.classList.contains('vldc-role-badge') && badge.dataset.userId === match[1]) {
+        const previous = badge.previousElementSibling;
+        badge.remove();
+        badge = previous;
+      }
+      badge = anchor.previousElementSibling;
       if (!badge?.classList.contains('vldc-role-badge') || badge.dataset.userId !== match[1]) {
         badge = document.createElement('span');
         badge.className = 'vldc-role-badge';
         badge.dataset.userId = match[1];
         anchor.insertAdjacentElement('beforebegin', badge);
       }
-      badge.className = `vldc-role-badge vldc-role-badge--${info.role}`;
+      badge.className = \`vldc-role-badge vldc-role-badge--\${info.role}\`;
       badge.textContent = info.label;
-      badge.title = `${info.label} · форумный аккаунт: ${username}`;
+      badge.title = \`\${info.label} · форумный аккаунт: \${username}\`;
       anchor.dataset.vldcRoleBadge = match[1];
     }
   }
