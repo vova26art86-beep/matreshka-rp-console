@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Vladimir | Leader & Deputy Center
 // @namespace    Vladimir_Sudarikov.MatreshkaTools
-// @version      2.6.3
+// @version      2.6.4
 // @description  Leader/deputy SLA tracking with manual per-topic review marks.
 // @match        https://forum.matrp.ru/*
 // @run-at       document-idle
@@ -94,7 +94,9 @@
   if (window.top !== window.self) return;
   // Rebuild a stale panel left behind by an older or partially failed script run.
   const staleRoot = document.getElementById(APP_ID);
-  if (staleRoot) staleRoot.remove();
+  if (staleRoot && staleRoot.parentNode) {
+    staleRoot.parentNode.removeChild(staleRoot);
+  }
 
   // Only salted PBKDF2 hashes are stored here; plaintext passwords are not embedded.
   // These are local UI gates, not forum permissions. XenForo remains authoritative.
@@ -327,7 +329,7 @@
           <div class="muted" id="topic-toolbar-hint">Одно нажатие: консоль сама откроет меню инструментов, выберет команду и подтвердит только соответствующее действие.</div>
         </section>
         <main class="content" id="content"></main>
-        <footer class="footer"><span>VLADIMIR · LEADER & DEPUTY</span><span>v2.6.3 · PANEL VISIBILITY</span></footer>
+        <footer class="footer"><span>VLADIMIR · LEADER & DEPUTY</span><span>v2.6.4 · PANEL VISIBILITY</span></footer>
       </div>
       <div class="resize-bottom" title="Потяни вверх или вниз, чтобы изменить высоту панели" aria-label="Изменить высоту панели"></div>
     </section>
