@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Vladimir Console — Matreshka RP (4.6.4 · leadership and player reply tracking)
 // @namespace    Vladimir_Sudarikov.AtelierConsole
-// @version      4.7.3
+// @version      4.7.5
 // @description  Персональная консоль: цвет ника точно берётся из текста плашки Egor_Andyfy; кнопка копирования образца убрана
 // @match        https://forum.matrp.ru/*
 // @match        http://forum.matrp.ru/*
