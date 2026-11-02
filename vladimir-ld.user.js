@@ -408,7 +408,7 @@
       anchors.add(anchor);
     }
     for (const anchor of anchors) {
-      if (!anchor.isConnected || anchor.closest(`#${APP_ID}`) || anchor.querySelector('img,svg')) continue;
+      if (!anchor.isConnected || anchor.closest('#' + APP_ID) || anchor.querySelector('img,svg')) continue;
       const href = anchor.getAttribute('href') || '';
       const match = href.match(/members\/[^/?#]*\.([0-9]+)(?:\/|[?#]|$)/i);
       if (!match) continue;
@@ -430,10 +430,10 @@
         badge.dataset.userId = match[1];
         anchor.insertAdjacentElement('beforebegin', badge);
       }
-      badge.className = `vldc-role-badge vldc-role-badge--${info.role}`;
+      badge.className = 'vldc-role-badge vldc-role-badge--' + info.role;
       badge.dataset.userId = match[1];
       badge.textContent = info.label;
-      badge.title = `${info.label} · форумный аккаунт: ${username}`;
+      badge.title = info.label + ' · форумный аккаунт: ' + username;
       anchor.dataset.vldcRoleBadge = match[1];
     }
   }
