@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Vladimir | Leader & Deputy Center
 // @namespace    Vladimir_Sudarikov.MatreshkaTools
-// @version      2.6.2
+// @version      2.6.3
 // @description  Leader/deputy SLA tracking with manual per-topic review marks.
 // @match        https://forum.matrp.ru/*
 // @run-at       document-idle
@@ -70,15 +70,25 @@
   const DEFAULT_PANEL_WIDTH = 410;
   const DEFAULT_PANEL_HEIGHT = 760;
   const getSavedPanelLayout = () => {
+    const defaultLeft = Math.max(8, window.innerWidth - DEFAULT_PANEL_WIDTH - 16);
+    const defaults = {
+      top: DEFAULT_PANEL_TOP,
+      left: defaultLeft,
+      width: DEFAULT_PANEL_WIDTH,
+      height: DEFAULT_PANEL_HEIGHT
+    };
+
     try {
-      const value = JSON.parse(localStorage.getItem(PANEL_LAYOUT_KEY) || '{}');
+      const savedLayout = JSON.parse(localStorage.getItem(PANEL_LAYOUT_KEY) || '{}');
       return {
-        top: Number.isFinite(value.top) ? value.top : DEFAULT_PANEL_TOP,
-        left: Number.isFinite(value.left) ? value.left : Math.max(8, window.innerWidth - DEFAULT_PANEL_WIDTH - 16),
-        width: Number.isFinite(value.width) ? value.width : DEFAULT_PANEL_WIDTH,
-        height: Number.isFinite(value.height) ? value.height : DEFAULT_PANEL_HEIGHT
+        top: Number.isFinite(savedLayout.top) ? savedLayout.top : defaults.top,
+        left: Number.isFinite(savedLayout.left) ? savedLayout.left : defaults.left,
+        width: Number.isFinite(savedLayout.width) ? savedLayout.width : defaults.width,
+        height: Number.isFinite(savedLayout.height) ? savedLayout.height : defaults.height
       };
-    } catch { return { top: DEFAULT_PANEL_TOP, left: Math.max(8, window.innerWidth - DEFAULT_PANEL_WIDTH - 16), width: DEFAULT_PANEL_WIDTH, height: DEFAULT_PANEL_HEIGHT }; }
+    } catch {
+      return defaults;
+    }
   };
   const getSavedPanelOpen = () => { try { return localStorage.getItem(PANEL_OPEN_KEY) === '1'; } catch { return false; } };
   if (window.top !== window.self) return;
@@ -317,7 +327,7 @@
           <div class="muted" id="topic-toolbar-hint">Одно нажатие: консоль сама откроет меню инструментов, выберет команду и подтвердит только соответствующее действие.</div>
         </section>
         <main class="content" id="content"></main>
-        <footer class="footer"><span>VLADIMIR · LEADER & DEPUTY</span><span>v2.6.2 · PANEL VISIBILITY</span></footer>
+        <footer class="footer"><span>VLADIMIR · LEADER & DEPUTY</span><span>v2.6.3 · PANEL VISIBILITY</span></footer>
       </div>
       <div class="resize-bottom" title="Потяни вверх или вниз, чтобы изменить высоту панели" aria-label="Изменить высоту панели"></div>
     </section>
