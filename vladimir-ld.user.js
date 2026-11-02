@@ -167,7 +167,7 @@
     #${APP_ID} #workspace:not([hidden]) { display:flex; flex:1 1 auto; flex-direction:column; min-height:0; max-height:100%; }
     #${APP_ID} #login { flex:1 1 auto; min-height:0; max-height:100%; overflow:auto; }
     #${APP_ID} .icon { width:28px; height:28px; border:1px solid #ffffff24; border-radius:8px; color:#fff; background:#ffffff0e; cursor:pointer; }
-    #${APP_ID} .tabs { display:grid; grid-template-columns:repeat(4,1fr); gap:5px; padding:9px 10px; border-bottom:1px solid #ffffff14; }
+    #${APP_ID} .tabs { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:5px; padding:9px 10px; border-bottom:1px solid #ffffff14; }
     #${APP_ID} .tab { padding:8px 3px; border:1px solid transparent; border-radius:8px; color:#c9bdd7; background:transparent; cursor:pointer; font-size:10px; font-weight:750; }
     #${APP_ID} .tab.active { color:#fff0ce; border-color:#e4be7e55; background:#be8f5728; }
     #${APP_ID} .topic-toolbar { margin:10px 10px 0; padding:10px; border:1px solid #e4be7e45; border-radius:12px; background:linear-gradient(135deg,#be8f5718,#ffffff08); }
@@ -290,6 +290,7 @@
           <button class="tab active" data-tab="common">Общие</button>
           <button class="tab" data-tab="state">Госс</button>
           <button class="tab" data-tab="ghetto">Гетто</button>
+          <button class="tab" data-tab="orgs">Орг.</button>
           <button class="tab" data-tab="tools">Инструменты</button>
         </nav>
         <section class="topic-toolbar" id="topic-toolbar" aria-label="Управление текущей темой">
@@ -888,7 +889,26 @@
     if (tab === 'common') renderLinks('ОБЩИЕ ТЕМЫ');
     else if (tab === 'state') renderLinks('ГОСУДАРСТВЕННЫЕ СТРУКТУРЫ');
     else if (tab === 'ghetto') renderLinks('ГЕТТО');
+    else if (tab === 'orgs') renderOrganizations();
     else renderTools();
+  }
+
+  function renderOrganizations() {
+    const stateOrgs = ['Правительство', 'Армия', 'Полиция', 'СГБ', 'МЧС', 'Городская больница', 'ГТРК «Темп»'];
+    const opgOrgs = ['ОПГ «Оффники»', 'ОПГ «Тамбовское»', 'ОПГ «Кавказское»'];
+    const linkFor = name => 'https://forum.matrp.ru/index.php?search/&q=' + encodeURIComponent('Матрешка 30 ' + name) + '&t=post';
+    const card = (name, desc) => `<a class="link" href="${linkFor(name)}" target="_blank" rel="noopener noreferrer"><span>${esc(name)}<small>${esc(desc)}</small></span><b>↗</b></a>`;
+    content.innerHTML = `
+      <div class="section">ОРГАНИЗАЦИИ · СЕРВЕР №30</div>
+      <div class="note">Выбери организацию — откроется поиск по форуму по её темам сервера №30.</div>
+      <div class="group"><div class="section">ГОСУДАРСТВЕННЫЕ ОРГАНИЗАЦИИ</div>
+        ${stateOrgs.map(name => card(name, 'Найти раздел и темы организации на сервере №30')).join('')}
+      </div>
+      <div class="group"><div class="section">ОРГАНИЗОВАННЫЕ ПРЕСТУПНЫЕ ГРУППИРОВКИ</div>
+        ${opgOrgs.map(name => card(name, 'Найти раздел и темы организации на сервере №30')).join('')}
+      </div>
+      <div class="hint">Ссылки ведут в поиск форума, а не на неподтверждённые адреса подразделов. Если структура разделов изменится, поиск продолжит помогать находить актуальные темы.</div>
+    `;
   }
 
   function renderTools() {
