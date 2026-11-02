@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Vladimir | Leader & Deputy Center
 // @namespace    Vladimir_Sudarikov.MatreshkaTools
-// @version      2.5.8
+// @version      2.5.9
 // @description  Leader/deputy SLA tracking with manual per-topic review marks.
 // @match        https://forum.matrp.ru/*
 // @run-at       document-idle
@@ -569,7 +569,12 @@
   if (!ACCESS[activeRole]) activeRole = '';
   let toastTimer = 0;
 
-  function esc(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+  function esc(s) {
+    const entities = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
+    return String(s == null ? "" : s).replace(/[&<>"']/g, function (character) {
+      return entities[character];
+    });
+  }
   function toast(msg) {
     document.querySelectorAll(`#${APP_ID} .toast`).forEach(n => n.remove());
     const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg; root.appendChild(t);
