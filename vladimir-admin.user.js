@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Vladimir Console — Matreshka RP (4.6.4 · leadership and player reply tracking)
 // @namespace    Vladimir_Sudarikov.AtelierConsole
-// @version      4.7.2
+// @version      4.7.3
 // @description  Персональная консоль: цвет ника точно берётся из текста плашки Egor_Andyfy; кнопка копирования образца убрана
 // @match        https://forum.matrp.ru/*
 // @match        http://forum.matrp.ru/*
@@ -42,7 +42,7 @@
   const DEFAULTS = { theme: 'obsidian', accent: '#a78bfa', notes: '', minimized: false, top: 82, right: 18, replyName: '', replyReason: '', cacheEnabled: true, cacheTtlMinutes: 30 };
 
   if (location.hostname !== 'forum.matrp.ru') {
-    console.warn('[Vladimir Console 4.7.2] Скрипт рассчитан на https://forum.matrp.ru/');
+    console.warn('[Vladimir Console 4.7.3] Скрипт рассчитан на https://forum.matrp.ru/');
     return;
   }
   if (document.getElementById(IDS.launcher)) return;
@@ -748,6 +748,91 @@
     }
   }
 
+
+  // Leader/deputy role labels ported from the LD console. Observer/follower accounts are intentionally excluded.
+  const VA_LEADER_DEPUTY_BADGES = Object.freeze({
+    '337247': { role: 'leader', label: 'ЛИДЕР · ПРАВИТЕЛЬСТВО' },
+    '61846': { role: 'leader', label: 'ЛИДЕР · АРМИЯ' },
+    '665168': { role: 'leader', label: 'ЛИДЕР · БОЛЬНИЦА' },
+    '395998': { role: 'leader', label: 'ЛИДЕР · ГТРК «ТЕМП»' },
+    '710153': { role: 'leader', label: 'ЛИДЕР · ПОЛИЦИЯ' },
+    '209918': { role: 'leader', label: 'ЛИДЕР · СГБ' },
+    '233306': { role: 'leader', label: 'ЛИДЕР · МЧС' },
+    '390109': { role: 'leader', label: 'ЛИДЕР · ОПГ «ОФФНИКИ»' },
+    '124513': { role: 'leader', label: 'ЛИДЕР · ОПГ «ТАМБОВСКОЕ»' },
+    '664364': { role: 'leader', label: 'ЛИДЕР · ОПГ «КАВКАЗСКОЕ»' },
+    '760431': { role: 'deputy', label: 'ЗАМЕСТИТЕЛЬ · ПРАВИТЕЛЬСТВО' },
+    '604565': { role: 'deputy', label: 'ЗАМЕСТИТЕЛЬ · ПРАВИТЕЛЬСТВО' },
+    '743229': { role: 'deputy', label: 'ЗАМЕСТИТЕЛЬ · ПРАВИТЕЛЬСТВО' },
+    '507995': { role: 'deputy', label: 'ЗАМЕСТИТЕЛЬ · АРМИЯ' },
+    '65921': { role: 'deputy', label: 'ЗАМЕСТИТЕЛЬ · АРМИЯ' },
+    '649359': { role: 'deputy', label: 'ЗАМЕСТИТЕЛЬ · БОЛЬНИЦА' },
+    '631650': { role: 'deputy', label: 'ЗАМЕСТИТЕЛЬ · БОЛЬНИЦА' },
+    '513640': { role: 'deputy', label: 'ЗАМЕСТИТЕЛЬ · ГТРК «ТЕМП»' },
+    '217195': { role: 'deputy', label: 'ЗАМЕСТИТЕЛЬ · ГТРК «ТЕМП»' },
+    '479415': { role: 'deputy', label: 'ЗАМЕСТИТЕЛЬ · ГТРК «ТЕМП»' },
+    '722676': { role: 'deputy', label: 'ЗАМЕСТИТЕЛЬ · ПОЛИЦИЯ' },
+    '281259': { role: 'deputy', label: 'ЗАМЕСТИТЕЛЬ · СГБ' },
+    '594678': { role: 'deputy', label: 'ЗАМЕСТИТЕЛЬ · СГБ' },
+    '587600': { role: 'deputy', label: 'ЗАМЕСТИТЕЛЬ · СГБ' },
+    '532291': { role: 'deputy', label: 'ЗАМЕСТИТЕЛЬ · МЧС' },
+    '742975': { role: 'deputy', label: 'ЗАМЕСТИТЕЛЬ · МЧС' },
+    '740394': { role: 'deputy', label: 'ЗАМЕСТИТЕЛЬ · МЧС' },
+    '691279': { role: 'deputy', label: 'ЗАМЕСТИТЕЛЬ · ОПГ «ОФФНИКИ»' },
+    '438781': { role: 'deputy', label: 'ЗАМЕСТИТЕЛЬ · ОПГ «ОФФНИКИ»' },
+    '673256': { role: 'deputy', label: 'ЗАМЕСТИТЕЛЬ · ОПГ «ОФФНИКИ»' },
+    '32310': { role: 'deputy', label: 'ЗАМЕСТИТЕЛЬ · ОПГ «ТАМБОВСКОЕ»' },
+    '162606': { role: 'deputy', label: 'ЗАМЕСТИТЕЛЬ · ОПГ «ТАМБОВСКОЕ»' },
+    '682314': { role: 'deputy', label: 'ЗАМЕСТИТЕЛЬ · ОПГ «КАВКАЗСКОЕ»' },
+    '233691': { role: 'deputy', label: 'ЗАМЕСТИТЕЛЬ · ОПГ «КАВКАЗСКОЕ»' },
+    '829310': { role: 'deputy', label: 'ЗАМЕСТИТЕЛЬ · ОПГ «КАВКАЗСКОЕ»' },
+  });
+
+  const vaBadgeStyle = document.createElement('style');
+  vaBadgeStyle.textContent = `
+    .va-ld-role-badge{display:inline-block!important;vertical-align:middle!important;width:max-content!important;max-width:min(190px,100%)!important;margin:1px 0 1px 5px!important;padding:2px 7px!important;border:1px solid!important;border-radius:999px!important;font:800 8px/1.25 Inter,Segoe UI,Arial,sans-serif!important;letter-spacing:.25px!important;text-transform:uppercase!important;white-space:normal!important;text-align:center!important;box-shadow:0 1px 4px #0002!important;pointer-events:none!important}
+    .va-ld-role-badge--leader{color:#ffe8b8!important;border-color:#d6ad5d99!important;background:linear-gradient(110deg,#9a6a25e8,#68431fe8)!important}
+    .va-ld-role-badge--deputy{color:#dbeafe!important;border-color:#77a8e899!important;background:linear-gradient(110deg,#315a91ed,#483d82ed)!important}
+  `;
+  (document.head || document.documentElement).appendChild(vaBadgeStyle);
+
+  function vaDecorateLeaderDeputyBadges(scope = document) {
+    if (!scope?.querySelectorAll) return;
+    const anchors = new Set();
+    if (scope.matches?.('a.username[href*="members/"], .memberHeader-name a[href*="members/"]')) anchors.add(scope);
+    for (const anchor of scope.querySelectorAll('a.username[href*="members/"], .memberHeader-name a[href*="members/"]')) anchors.add(anchor);
+    for (const anchor of anchors) {
+      if (!anchor.isConnected || anchor.closest('#' + IDS.panel) || anchor.closest('#' + IDS.auth) || anchor.querySelector('img,svg')) continue;
+      const match = (anchor.getAttribute('href') || '').match(/members\\/[^/?#]*\\.([0-9]+)(?:\\/|[?#]|$)/i);
+      if (!match) continue;
+      const info = VA_LEADER_DEPUTY_BADGES[match[1]];
+      if (!info || !['leader','deputy'].includes(info.role)) continue;
+      const username = (anchor.textContent || '').replace(/\\s+/g,' ').trim();
+      if (!username || username.length > 70) continue;
+      let badge = anchor.nextElementSibling;
+      while (badge?.classList.contains('va-ld-role-badge') && badge.dataset.userId === match[1]) {
+        const next = badge.nextElementSibling; badge.remove(); badge = next;
+      }
+      if (!badge?.classList.contains('va-ld-role-badge') || badge.dataset.userId !== match[1]) {
+        badge = document.createElement('span');
+        badge.className = 'va-ld-role-badge';
+        badge.dataset.userId = match[1];
+        anchor.insertAdjacentElement('afterend', badge);
+      }
+      badge.className = 'va-ld-role-badge va-ld-role-badge--' + info.role;
+      badge.dataset.userId = match[1];
+      badge.textContent = info.label;
+      badge.title = info.label + ' · ' + username;
+    }
+  }
+  vaDecorateLeaderDeputyBadges();
+  const vaLeaderDeputyObserver = new MutationObserver(records => {
+    for (const record of records) for (const node of record.addedNodes) {
+      if (node.nodeType === Node.ELEMENT_NODE) vaDecorateLeaderDeputyBadges(node);
+    }
+  });
+  vaLeaderDeputyObserver.observe(document.documentElement, {childList:true,subtree:true});
+
   // === Cross-server complaint SLA monitor and one-click prefix helper ===
   const slaStyles = {
     due: 'va340-thread-due', overdue: 'va340-thread-overdue'
@@ -811,7 +896,7 @@
   }
   const ONE_DAY_MS = 24 * 60 * 60 * 1000;
   const ONE_HOUR_MS = 60 * 60 * 1000;
-  const MAX_OVERDUE_MS = 30 * 24 * ONE_HOUR_MS; // Keep long-pending applications visible for up to 30 days after the SLA.
+  const MAX_OVERDUE_MS = 80 * ONE_HOUR_MS; // Hide items more than 80 hours overdue, as requested.
   const MAX_TRACKED_AGE_MS = ONE_DAY_MS + MAX_OVERDUE_MS;
   const MANUAL_SCAN_LIMIT = 5;
   const SLA_FEED_DISPLAY_LIMIT = 30;
@@ -1890,7 +1975,7 @@
       statusNode.textContent = 'Префикс «' + chosenLabel + '» сохранён.' + stateSuffix + ' Шаблоны ответа не изменяются.';
       logActivity('Префикс сохранён: ' + chosenLabel + (threadStateResult?.message ? ' · ' + threadStateResult.message : ''));
     } catch (error) {
-      console.error('[Vladimir Console 4.7.2] Prefix error:', error);
+      console.error('[Vladimir Console 4.7.3] Prefix error:', error);
       statusNode.textContent = 'Ошибка префикса: ' + (error?.message || String(error)) + '. Для подробностей открой F12 → Console.';
     }
   }
@@ -2183,7 +2268,7 @@
       inPanel('va330-reply-status').textContent = 'Ответ «' + label + '» добавлен в редактор. Проверь текст перед отправкой.';
       logActivity(label + ' · вставлено');
     } catch (error) {
-      console.warn('[Vladimir Console 4.7.2] Не удалось вставить форматированный ответ:', error);
+      console.warn('[Vladimir Console 4.7.3] Не удалось вставить форматированный ответ:', error);
       copyText(bbcode);
       inPanel('va330-reply-status').textContent = 'Автовставка не сработала — BBCode скопирован, вставь Ctrl+V.';
       logActivity(label + ' · скопировано');
@@ -2235,7 +2320,7 @@
     });
     const names = editForms[0] ? [...editForms[0].options].map(o => (o.textContent || '').trim()).filter(Boolean) : [];
     inPanel('va340-prefix-status').textContent = 'Тема: ' + (isThreadUrl() ? 'распознана' : 'не распознана') + ' · селектов prefix_id: ' + candidates.length + ' · редакторных селектов: ' + editForms.length + ' · варианты: ' + (names.join(' / ') || 'не найдены');
-    console.info('[Vladimir Console 4.7.2] Prefix diagnostic', { href: location.href, candidates, editForms, options: names });
+    console.info('[Vladimir Console 4.7.3] Prefix diagnostic', { href: location.href, candidates, editForms, options: names });
   });
   inPanel('va340-scan').addEventListener('click', scanSlaTopics);
   inPanel('va340-current').addEventListener('click', inspectCurrentThread);
