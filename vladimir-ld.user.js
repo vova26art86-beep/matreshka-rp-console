@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Vladimir | Leader & Deputy Center
 // @namespace    Vladimir_Sudarikov.MatreshkaTools
-// @version      2.6.1
+// @version      2.6.2
 // @description  Leader/deputy SLA tracking with manual per-topic review marks.
 // @match        https://forum.matrp.ru/*
 // @run-at       document-idle
@@ -80,7 +80,7 @@
       };
     } catch { return { top: DEFAULT_PANEL_TOP, left: Math.max(8, window.innerWidth - DEFAULT_PANEL_WIDTH - 16), width: DEFAULT_PANEL_WIDTH, height: DEFAULT_PANEL_HEIGHT }; }
   };
-  const getSavedPanelOpen = () => { try { return localStorage.getItem(PANEL_OPEN_KEY) !== '0'; } catch { return true; } };
+  const getSavedPanelOpen = () => { try { return localStorage.getItem(PANEL_OPEN_KEY) === '1'; } catch { return false; } };
   if (window.top !== window.self) return;
   // Rebuild a stale panel left behind by an older or partially failed script run.
   const staleRoot = document.getElementById(APP_ID);
@@ -165,10 +165,10 @@
     .vldc-role-badge--observer { color:#ffe0f2; border-color:#df83b899; background:linear-gradient(110deg,#8e356ced,#632f82ed); }
     #${APP_ID} { --vldc-top:12px; --vldc-left:calc(100vw - 426px); --vldc-width:410px; --vldc-height:760px; position:fixed; top:var(--vldc-top); left:var(--vldc-left); right:auto; bottom:auto; z-index:2147483000; color:#f8f3ff; font:13px/1.45 Inter,Segoe UI,Arial,sans-serif; -webkit-font-smoothing:antialiased; }
     #${APP_ID} button, #${APP_ID} input, #${APP_ID} select { font:inherit; }
-    #${APP_ID} .launch { border:1px solid #80699a; border-radius:999px; padding:11px 16px; color:#fff; background:linear-gradient(115deg,#49306e 0%,#7650a4 38%,#a34f82 72%,#b87955 100%); box-shadow:0 6px 18px #160b2460; font-weight:800; cursor:pointer; }
+    #${APP_ID} .launch { position:fixed; right:16px; bottom:16px; left:auto; top:auto; z-index:2147483001; display:block; border:1px solid #80699a; border-radius:999px; padding:11px 16px; color:#fff; background:linear-gradient(115deg,#49306e 0%,#7650a4 38%,#a34f82 72%,#b87955 100%); box-shadow:0 6px 18px #160b2460; font-weight:800; cursor:pointer; }
     #${APP_ID} .panel { display:none; width:min(var(--vldc-width),calc(100vw - 16px)); height:min(var(--vldc-height),calc(100vh - var(--vldc-top) - 8px)); max-height:calc(100vh - var(--vldc-top) - 8px); overflow:hidden; flex-direction:column; min-height:0; border:1px solid #9778b8; border-radius:18px; background:radial-gradient(ellipse at 5% 0%,#65458a45,transparent 42%),radial-gradient(ellipse at 100% 100%,#a45b6a24,transparent 38%),linear-gradient(155deg,#1b1728fa,#30213df7); box-shadow:0 12px 34px #10081780; }
     #${APP_ID}.open .panel { display:flex; }
-    #${APP_ID}.open .launch { display:none; }
+    #${APP_ID}.open .launch { display:none !important; }
     #${APP_ID} .head { display:flex; justify-content:space-between; align-items:center; padding:13px 14px; border-bottom:1px solid #ffffff18; background:linear-gradient(110deg,#76519a66,#3b91a433 52%,#d4a0612b); cursor:ns-resize; user-select:none; touch-action:none; }
     #${APP_ID} .brand { display:flex; align-items:center; gap:10px; min-width:0; }
     #${APP_ID} .mark { display:grid; place-items:center; width:36px; height:36px; border-radius:11px; color:#ffe4ac; background:linear-gradient(145deg,#6e54b5,#c45f91 58%,#d6a35e); font-size:19px; }
@@ -317,7 +317,7 @@
           <div class="muted" id="topic-toolbar-hint">Одно нажатие: консоль сама откроет меню инструментов, выберет команду и подтвердит только соответствующее действие.</div>
         </section>
         <main class="content" id="content"></main>
-        <footer class="footer"><span>VLADIMIR · LEADER & DEPUTY</span><span>v2.6.1 · ROLE BADGES</span></footer>
+        <footer class="footer"><span>VLADIMIR · LEADER & DEPUTY</span><span>v2.6.2 · PANEL VISIBILITY</span></footer>
       </div>
       <div class="resize-bottom" title="Потяни вверх или вниз, чтобы изменить высоту панели" aria-label="Изменить высоту панели"></div>
     </section>
