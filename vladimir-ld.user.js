@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Vladimir | Leader & Deputy Center
 // @namespace    Vladimir_Sudarikov.MatreshkaTools
-// @version      2.5.6
+// @version      2.5.7
 // @description  Leader/deputy SLA tracking with manual per-topic review marks.
 // @match        https://forum.matrp.ru/*
 // @run-at       document-idle
@@ -63,15 +63,24 @@
     '341059': 'observer' // vladimir_sudarikov (Vladimir Sudarikov, observer)
   });
   const LAST_TAB_KEY = 'vldc_v2_last_tab';
-  const PANEL_TOP_KEY = 'vldc_v2_panel_top';
+  const PANEL_LAYOUT_KEY = 'vldc_v2_panel_layout';
+  const PANEL_OPEN_KEY = 'vldc_v2_panel_open';
   const REVIEWED_THREADS_KEY = 'vldc_v2_reviewed_threads';
   const DEFAULT_PANEL_TOP = 12;
-  const getSavedPanelTop = () => {
+  const DEFAULT_PANEL_WIDTH = 410;
+  const DEFAULT_PANEL_HEIGHT = 760;
+  const getSavedPanelLayout = () => {
     try {
-      const value = Number(localStorage.getItem(PANEL_TOP_KEY));
-      return Number.isFinite(value) && value >= 0 ? Math.min(value, Math.max(12, window.innerHeight - 160)) : DEFAULT_PANEL_TOP;
-    } catch { return DEFAULT_PANEL_TOP; }
+      const value = JSON.parse(localStorage.getItem(PANEL_LAYOUT_KEY) || '{}');
+      return {
+        top: Number.isFinite(value.top) ? value.top : DEFAULT_PANEL_TOP,
+        left: Number.isFinite(value.left) ? value.left : Math.max(8, window.innerWidth - DEFAULT_PANEL_WIDTH - 16),
+        width: Number.isFinite(value.width) ? value.width : DEFAULT_PANEL_WIDTH,
+        height: Number.isFinite(value.height) ? value.height : DEFAULT_PANEL_HEIGHT
+      };
+    } catch { return { top: DEFAULT_PANEL_TOP, left: Math.max(8, window.innerWidth - DEFAULT_PANEL_WIDTH - 16), width: DEFAULT_PANEL_WIDTH, height: DEFAULT_PANEL_HEIGHT }; }
   };
+  const getSavedPanelOpen = () => { try { return localStorage.getItem(PANEL_OPEN_KEY) === '1'; } catch { return false; } };
   if (window.top !== window.self || document.getElementById(APP_ID)) return;
 
   // Only salted PBKDF2 hashes are stored here; plaintext passwords are not embedded.
@@ -151,10 +160,10 @@
     .vldc-role-badge--leader { color:#ffe8b8; border-color:#d6ad5d99; background:linear-gradient(110deg,#9a6a25e8,#68431fe8); }
     .vldc-role-badge--deputy { color:#dbeafe; border-color:#77a8e899; background:linear-gradient(110deg,#315a91ed,#483d82ed); }
     .vldc-role-badge--observer { color:#ffe0f2; border-color:#df83b899; background:linear-gradient(110deg,#8e356ced,#632f82ed); }
-    #${APP_ID} { --vldc-top:${getSavedPanelTop()}px; position:fixed; top:var(--vldc-top); right:16px; left:auto; bottom:auto; z-index:2147483000; color:#f8f3ff; font:13px/1.45 Inter,Segoe UI,Arial,sans-serif; -webkit-font-smoothing:antialiased; }
+    #${APP_ID} { --vldc-top:12px; --vldc-left:calc(100vw - 426px); --vldc-width:410px; --vldc-height:760px; position:fixed; top:var(--vldc-top); left:var(--vldc-left); right:auto; bottom:auto; z-index:2147483000; color:#f8f3ff; font:13px/1.45 Inter,Segoe UI,Arial,sans-serif; -webkit-font-smoothing:antialiased; }
     #${APP_ID} button, #${APP_ID} input, #${APP_ID} select { font:inherit; }
     #${APP_ID} .launch { border:1px solid #80699a; border-radius:999px; padding:11px 16px; color:#fff; background:linear-gradient(115deg,#49306e 0%,#7650a4 38%,#a34f82 72%,#b87955 100%); box-shadow:0 6px 18px #160b2460; font-weight:800; cursor:pointer; }
-    #${APP_ID} .panel { display:none; width:min(410px,calc(100vw - 20px)); height:min(760px,calc(100vh - var(--vldc-top) - 12px)); max-height:calc(100vh - var(--vldc-top) - 12px); overflow:hidden; flex-direction:column; min-height:0; border:1px solid #9778b8; border-radius:18px; background:radial-gradient(ellipse at 5% 0%,#65458a45,transparent 42%),radial-gradient(ellipse at 100% 100%,#a45b6a24,transparent 38%),linear-gradient(155deg,#1b1728fa,#30213df7); box-shadow:0 12px 34px #10081780; }
+    #${APP_ID} .panel { display:none; width:min(var(--vldc-width),calc(100vw - 16px)); height:min(var(--vldc-height),calc(100vh - var(--vldc-top) - 8px)); max-height:calc(100vh - var(--vldc-top) - 8px); overflow:hidden; flex-direction:column; min-height:0; border:1px solid #9778b8; border-radius:18px; background:radial-gradient(ellipse at 5% 0%,#65458a45,transparent 42%),radial-gradient(ellipse at 100% 100%,#a45b6a24,transparent 38%),linear-gradient(155deg,#1b1728fa,#30213df7); box-shadow:0 12px 34px #10081780; }
     #${APP_ID}.open .panel { display:flex; }
     #${APP_ID}.open .launch { display:none; }
     #${APP_ID} .head { display:flex; justify-content:space-between; align-items:center; padding:13px 14px; border-bottom:1px solid #ffffff18; background:linear-gradient(110deg,#76519a66,#3b91a433 52%,#d4a0612b); cursor:ns-resize; user-select:none; touch-action:none; }
@@ -201,12 +210,13 @@
     #${APP_ID} .primary { width:100%; padding:10px; border:1px solid #e4be7e66; border-radius:9px; color:#fff2d8; background:#be8f5730; cursor:pointer; font-weight:800; }
     #${APP_ID} .hint { padding:9px 10px; margin:8px 0; border:1px solid #ffffff18; border-radius:9px; color:#c4b4d1; background:#ffffff08; font-size:10px; }
     #${APP_ID} .footer { display:flex; flex:0 0 auto; justify-content:space-between; padding:9px 13px; border-top:1px solid #ffffff15; color:#9888a7; font-size:9px; }
+    #${APP_ID} .resize-bottom { flex:0 0 12px; height:12px; cursor:ns-resize; touch-action:none; background:linear-gradient(transparent 4px,#bca1d866 4px,#bca1d866 6px,transparent 6px) center/42px 10px no-repeat; border-top:1px solid #ffffff12; }
     #${APP_ID} .error { min-height:15px; margin:6px 0; color:#ff9eaa; font-size:10px; }
     #${APP_ID} .toast { position:fixed; right:16px; top:70px; z-index:2147483001; max-width:min(360px,calc(100vw - 36px)); padding:10px 13px; border:1px solid #e8c88f55; border-radius:10px; color:#fff; background:#332546; box-shadow:0 5px 16px #0005; font:12px/1.4 Segoe UI,Arial,sans-serif; }
     @media(max-width:600px){
-      #${APP_ID}{right:max(6px,env(safe-area-inset-right));left:auto;max-width:calc(100vw - 12px)}
+      #${APP_ID}{max-width:calc(100vw - 12px)}
       #${APP_ID} .launch{max-width:calc(100vw - 12px);min-height:46px;padding:12px 14px;font-size:12px;white-space:normal;touch-action:manipulation}
-      #${APP_ID} .panel{width:calc(100vw - 12px);height:calc(100dvh - var(--vldc-top) - 8px);max-height:calc(100dvh - var(--vldc-top) - 8px);border-radius:14px}
+      #${APP_ID} .panel{width:min(var(--vldc-width),calc(100vw - 12px));height:min(var(--vldc-height),calc(100dvh - var(--vldc-top) - 8px));max-height:calc(100dvh - var(--vldc-top) - 8px);border-radius:14px}
       #${APP_ID} .head{min-height:56px;padding:8px 9px;gap:6px}
       #${APP_ID} .brand{gap:7px}
       #${APP_ID} .mark{width:32px;height:32px;border-radius:9px;font-size:17px}
@@ -304,44 +314,81 @@
           <div class="muted" id="topic-toolbar-hint">Одно нажатие: консоль сама откроет меню инструментов, выберет команду и подтвердит только соответствующее действие.</div>
         </section>
         <main class="content" id="content"></main>
-        <footer class="footer"><span>VLADIMIR · LEADER & DEPUTY</span><span>v2.5.0 · ROLE BADGES</span></footer>
+        <footer class="footer"><span>VLADIMIR · LEADER & DEPUTY</span><span>v2.5.7 · ROLE BADGES</span></footer>
       </div>
+      <div class="resize-bottom" title="Потяни вверх или вниз, чтобы изменить высоту панели" aria-label="Изменить высоту панели"></div>
     </section>
     <button class="launch" data-act="open">♜ VLADIMIR · ЛД / ЗАМЫ</button>
   `;
   document.body.appendChild(root);
 
-  // Panel layout: fixed to the upper-right by default, with vertical nudging and header dragging.
-  let panelTop = getSavedPanelTop();
-  const clampPanelTop = value => Math.max(8, Math.min(Number(value) || DEFAULT_PANEL_TOP, Math.max(8, window.innerHeight - 160)));
-  function setPanelTop(value, persist = true) {
-    panelTop = clampPanelTop(value);
-    root.style.setProperty('--vldc-top', `${panelTop}px`);
-    if (persist) {
-      try { localStorage.setItem(PANEL_TOP_KEY, String(panelTop)); } catch {}
-    }
+  // Panel geometry and open state persist across full page/topic navigation.
+  const savedLayout = getSavedPanelLayout();
+  let panelTop = savedLayout.top;
+  let panelLeft = savedLayout.left;
+  let panelWidth = savedLayout.width;
+  let panelHeight = savedLayout.height;
+  const clamp = (value, min, max) => Math.max(min, Math.min(Number(value) || min, max));
+  function savePanelLayout() {
+    try { localStorage.setItem(PANEL_LAYOUT_KEY, JSON.stringify({ top: panelTop, left: panelLeft, width: panelWidth, height: panelHeight })); } catch {}
   }
-  setPanelTop(panelTop, false);
+  function applyPanelLayout(persist = true) {
+    panelWidth = clamp(panelWidth, 280, Math.max(280, window.innerWidth - 16));
+    panelHeight = clamp(panelHeight, 220, Math.max(220, window.innerHeight - 8));
+    panelLeft = clamp(panelLeft, 8, Math.max(8, window.innerWidth - Math.min(panelWidth, window.innerWidth - 16) - 8));
+    panelTop = clamp(panelTop, 8, Math.max(8, window.innerHeight - 80));
+    root.style.setProperty('--vldc-top', `${panelTop}px`);
+    root.style.setProperty('--vldc-left', `${panelLeft}px`);
+    root.style.setProperty('--vldc-width', `${panelWidth}px`);
+    root.style.setProperty('--vldc-height', `${panelHeight}px`);
+    if (persist) savePanelLayout();
+  }
+  applyPanelLayout(false);
+  if (getSavedPanelOpen()) root.classList.add('open');
   const panelHeader = root.querySelector('.head');
   let panelDrag = null;
   panelHeader.addEventListener('pointerdown', event => {
     if (event.button !== 0 || event.target.closest('button')) return;
-    panelDrag = { id: event.pointerId, startY: event.clientY, startTop: panelTop };
+    panelDrag = { id: event.pointerId, startX: event.clientX, startY: event.clientY, startLeft: panelLeft, startTop: panelTop };
     try { panelHeader.setPointerCapture(event.pointerId); } catch {}
     event.preventDefault();
   });
   panelHeader.addEventListener('pointermove', event => {
     if (!panelDrag || panelDrag.id !== event.pointerId) return;
-    setPanelTop(panelDrag.startTop + event.clientY - panelDrag.startY);
+    panelLeft = panelDrag.startLeft + event.clientX - panelDrag.startX;
+    panelTop = panelDrag.startTop + event.clientY - panelDrag.startY;
+    applyPanelLayout();
   });
   const finishPanelDrag = event => {
     if (!panelDrag || (event && panelDrag.id !== event.pointerId)) return;
     panelDrag = null;
+    savePanelLayout();
     try { if (event && panelHeader.hasPointerCapture(event.pointerId)) panelHeader.releasePointerCapture(event.pointerId); } catch {}
   };
   panelHeader.addEventListener('pointerup', finishPanelDrag);
   panelHeader.addEventListener('pointercancel', finishPanelDrag);
-  window.addEventListener('resize', () => setPanelTop(panelTop, false));
+  const resizeHandle = root.querySelector('.resize-bottom');
+  let panelResize = null;
+  resizeHandle.addEventListener('pointerdown', event => {
+    if (event.button !== 0) return;
+    panelResize = { id: event.pointerId, startY: event.clientY, startHeight: panelHeight };
+    try { resizeHandle.setPointerCapture(event.pointerId); } catch {}
+    event.preventDefault();
+  });
+  resizeHandle.addEventListener('pointermove', event => {
+    if (!panelResize || panelResize.id !== event.pointerId) return;
+    panelHeight = panelResize.startHeight + event.clientY - panelResize.startY;
+    applyPanelLayout();
+  });
+  const finishPanelResize = event => {
+    if (!panelResize || (event && panelResize.id !== event.pointerId)) return;
+    panelResize = null;
+    savePanelLayout();
+    try { if (event && resizeHandle.hasPointerCapture(event.pointerId)) resizeHandle.releasePointerCapture(event.pointerId); } catch {}
+  };
+  resizeHandle.addEventListener('pointerup', finishPanelResize);
+  resizeHandle.addEventListener('pointercancel', finishPanelResize);
+  window.addEventListener('resize', () => applyPanelLayout());
 
   // Local-only cosmetic rename: the forum account and server-side username are unchanged.
   function applyLocalProfileDisplayName(scope = document) {
@@ -1208,10 +1255,10 @@
   root.addEventListener('click', async event => {
     const btn = event.target.closest('button');
     if (!btn || !root.contains(btn)) return;
-    if (btn.dataset.act === 'open') { root.classList.add('open'); return; }
-    if (btn.dataset.act === 'close') { root.classList.remove('open'); return; }
-    if (btn.dataset.act === 'move-up') { setPanelTop(panelTop - 42); return; }
-    if (btn.dataset.act === 'move-down') { setPanelTop(panelTop + 42); return; }
+    if (btn.dataset.act === 'open') { root.classList.add('open'); try { localStorage.setItem(PANEL_OPEN_KEY, '1'); } catch {} return; }
+    if (btn.dataset.act === 'close') { root.classList.remove('open'); try { localStorage.setItem(PANEL_OPEN_KEY, '0'); } catch {} return; }
+    if (btn.dataset.act === 'move-up') { panelTop -= 42; applyPanelLayout(); return; }
+    if (btn.dataset.act === 'move-down') { panelTop += 42; applyPanelLayout(); return; }
     if (btn.dataset.act === 'logout') { logout(); toast('Выход выполнен.'); return; }
     if (btn.dataset.act === 'login') {
       const role = $('#role').value;
