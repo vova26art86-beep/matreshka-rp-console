@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Vladimir | Leader & Deputy Center
 // @namespace    Vladimir_Sudarikov.MatreshkaTools
-// @version      2.4.1
+// @version      2.5.0
 // @description  Leader/deputy SLA tracking with manual per-topic review marks.
 // @match        https://forum.matrp.ru/*
 // @run-at       document-idle
@@ -147,6 +147,10 @@
   css.textContent = `
     #${APP_ID}, #${APP_ID} * { box-sizing:border-box; }
     .vldc-profile-display-name { color:#f472b6 !important; font-weight:800 !important; letter-spacing:.1px !important; text-shadow:0 0 10px #ec489944 !important; }
+    .vldc-role-badge { display:table; width:max-content; max-width:min(240px,100%); margin:0 0 3px; padding:2px 7px; border:1px solid; border-radius:999px; font:800 8px/1.25 Inter,Segoe UI,Arial,sans-serif; letter-spacing:.45px; text-transform:uppercase; white-space:normal; text-align:center; box-shadow:0 2px 7px #0002; pointer-events:none; }
+    .vldc-role-badge--leader { color:#ffe8b8; border-color:#d6ad5d99; background:linear-gradient(110deg,#9a6a25e8,#68431fe8); }
+    .vldc-role-badge--deputy { color:#dbeafe; border-color:#77a8e899; background:linear-gradient(110deg,#315a91ed,#483d82ed); }
+    .vldc-role-badge--observer { color:#ffe0f2; border-color:#df83b899; background:linear-gradient(110deg,#8e356ced,#632f82ed); }
     #${APP_ID} { --vldc-top:${getSavedPanelTop()}px; position:fixed; top:var(--vldc-top); right:16px; left:auto; bottom:auto; z-index:2147483000; color:#f8f3ff; font:13px/1.45 Inter,Segoe UI,Arial,sans-serif; -webkit-font-smoothing:antialiased; }
     #${APP_ID} button, #${APP_ID} input, #${APP_ID} select { font:inherit; }
     #${APP_ID} .launch { border:1px solid #80699a; border-radius:999px; padding:11px 16px; color:#fff; background:linear-gradient(115deg,#49306e 0%,#7650a4 38%,#a34f82 72%,#b87955 100%); box-shadow:0 6px 18px #160b2460; font-weight:800; cursor:pointer; }
@@ -266,7 +270,7 @@
 
   const root = document.createElement('div');
   root.id = APP_ID;
-  root.setAttribute('data-console-version', '2.4.1');
+  root.setAttribute('data-console-version', '2.5.0');
   root.innerHTML = `
     <section class="panel" aria-label="Leader and Deputy Center">
       <header class="head">
@@ -299,7 +303,7 @@
           <div class="muted" id="topic-toolbar-hint">Одно нажатие: консоль сама откроет меню инструментов, выберет команду и подтвердит только соответствующее действие.</div>
         </section>
         <main class="content" id="content"></main>
-        <footer class="footer"><span>VLADIMIR · LEADER & DEPUTY</span><span>v2.4.1 · OBSERVER AUTO ROLE</span></footer>
+        <footer class="footer"><span>VLADIMIR · LEADER & DEPUTY</span><span>v2.5.0 · ROLE BADGES</span></footer>
       </div>
     </section>
     <button class="launch" data-act="open">♜ VLADIMIR · ЛД / ЗАМЫ</button>
@@ -353,6 +357,76 @@
     });
   }
   applyLocalProfileDisplayName();
+
+  // Compact role badges above forum usernames; metadata is local presentation only.
+  const ACCOUNT_BADGE_INFO = Object.freeze({
+    '337247': { role: 'leader', label: 'ЛИДЕР · ПРАВИТЕЛЬСТВО' },
+    '61846': { role: 'leader', label: 'ЛИДЕР · АРМИЯ' },
+    '665168': { role: 'leader', label: 'ЛИДЕР · БОЛЬНИЦА' },
+    '395998': { role: 'leader', label: 'ЛИДЕР · ГТРК «ТЕМП»' },
+    '710153': { role: 'leader', label: 'ЛИДЕР · ПОЛИЦИЯ' },
+    '209918': { role: 'leader', label: 'ЛИДЕР · СГБ' },
+    '233306': { role: 'leader', label: 'ЛИДЕР · МЧС' },
+    '390109': { role: 'leader', label: 'ЛИДЕР · ОПГ «ОФФНИКИ»' },
+    '124513': { role: 'leader', label: 'ЛИДЕР · ОПГ «ТАМБОВСКОЕ»' },
+    '664364': { role: 'leader', label: 'ЛИДЕР · ОПГ «КАВКАЗСКОЕ»' },
+    '760431': { role: 'deputy', label: 'ЗАМЕСТИТЕЛЬ · ПРАВИТЕЛЬСТВО' },
+    '604565': { role: 'deputy', label: 'ЗАМЕСТИТЕЛЬ · ПРАВИТЕЛЬСТВО' },
+    '743229': { role: 'deputy', label: 'ЗАМЕСТИТЕЛЬ · ПРАВИТЕЛЬСТВО' },
+    '507995': { role: 'deputy', label: 'ЗАМЕСТИТЕЛЬ · АРМИЯ' },
+    '65921': { role: 'deputy', label: 'ЗАМЕСТИТЕЛЬ · АРМИЯ' },
+    '649359': { role: 'deputy', label: 'ЗАМЕСТИТЕЛЬ · БОЛЬНИЦА' },
+    '631650': { role: 'deputy', label: 'ЗАМЕСТИТЕЛЬ · БОЛЬНИЦА' },
+    '513640': { role: 'deputy', label: 'ЗАМЕСТИТЕЛЬ · ГТРК «ТЕМП»' },
+    '217195': { role: 'deputy', label: 'ЗАМЕСТИТЕЛЬ · ГТРК «ТЕМП»' },
+    '479415': { role: 'deputy', label: 'ЗАМЕСТИТЕЛЬ · ГТРК «ТЕМП»' },
+    '722676': { role: 'deputy', label: 'ЗАМЕСТИТЕЛЬ · ПОЛИЦИЯ' },
+    '281259': { role: 'deputy', label: 'ЗАМЕСТИТЕЛЬ · СГБ' },
+    '594678': { role: 'deputy', label: 'ЗАМЕСТИТЕЛЬ · СГБ' },
+    '587600': { role: 'deputy', label: 'ЗАМЕСТИТЕЛЬ · СГБ' },
+    '532291': { role: 'deputy', label: 'ЗАМЕСТИТЕЛЬ · МЧС' },
+    '742975': { role: 'deputy', label: 'ЗАМЕСТИТЕЛЬ · МЧС' },
+    '740394': { role: 'deputy', label: 'ЗАМЕСТИТЕЛЬ · МЧС' },
+    '691279': { role: 'deputy', label: 'ЗАМЕСТИТЕЛЬ · ОПГ «ОФФНИКИ»' },
+    '438781': { role: 'deputy', label: 'ЗАМЕСТИТЕЛЬ · ОПГ «ОФФНИКИ»' },
+    '673256': { role: 'deputy', label: 'ЗАМЕСТИТЕЛЬ · ОПГ «ОФФНИКИ»' },
+    '32310': { role: 'deputy', label: 'ЗАМЕСТИТЕЛЬ · ОПГ «ТАМБОВСКОЕ»' },
+    '162606': { role: 'deputy', label: 'ЗАМЕСТИТЕЛЬ · ОПГ «ТАМБОВСКОЕ»' },
+    '682314': { role: 'deputy', label: 'ЗАМЕСТИТЕЛЬ · ОПГ «КАВКАЗСКОЕ»' },
+    '233691': { role: 'deputy', label: 'ЗАМЕСТИТЕЛЬ · ОПГ «КАВКАЗСКОЕ»' },
+    '829310': { role: 'deputy', label: 'ЗАМЕСТИТЕЛЬ · ОПГ «КАВКАЗСКОЕ»' },
+    '341059': { role: 'observer', label: 'СЛЕДЯЩИЙ' }
+  });
+
+  function decorateForumMemberBadges(scope = document) {
+    if (!scope?.querySelectorAll) return;
+    const anchors = [];
+    if (scope.matches?.('a[href*="members/"]')) anchors.push(scope);
+    anchors.push(...scope.querySelectorAll('a[href*="members/"]'));
+    for (const anchor of anchors) {
+      if (!anchor.isConnected || anchor.closest(`#${APP_ID}`) || anchor.querySelector('img,svg')) continue;
+      const href = anchor.getAttribute('href') || '';
+      const match = href.match(/members\/[^/?#]*\.([0-9]+)(?:\/|[?#]|$)/i);
+      if (!match) continue;
+      const info = ACCOUNT_BADGE_INFO[match[1]];
+      if (!info) continue;
+      const username = (anchor.textContent || '').replace(/\s+/g, ' ').trim();
+      if (!username || username.length > 70) continue;
+      let badge = anchor.previousElementSibling;
+      if (!badge?.classList.contains('vldc-role-badge') || badge.dataset.userId !== match[1]) {
+        badge = document.createElement('span');
+        badge.className = 'vldc-role-badge';
+        badge.dataset.userId = match[1];
+        anchor.insertAdjacentElement('beforebegin', badge);
+      }
+      badge.className = `vldc-role-badge vldc-role-badge--${info.role}`;
+      badge.textContent = info.label;
+      badge.title = `${info.label} · форумный аккаунт: ${username}`;
+      anchor.dataset.vldcRoleBadge = match[1];
+    }
+  }
+
+  decorateForumMemberBadges();
   // XenForo may add content after initial load; inspect only newly added subtrees.
   const profileNameObserver = new MutationObserver(records => {
     for (const record of records) {
@@ -367,6 +441,7 @@
           }
         }
         applyLocalProfileDisplayName(node);
+        decorateForumMemberBadges(node);
       }
     }
   });
