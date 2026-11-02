@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Vladimir | Leader & Deputy Center
 // @namespace    Vladimir_Sudarikov.MatreshkaTools
-// @version      2.6.5
+// @version      2.6.6
 // @description  Leader/deputy SLA tracking with manual per-topic review marks.
 // @match        https://forum.matrp.ru/*
 // @run-at       document-idle
@@ -329,7 +329,7 @@
           <div class="muted" id="topic-toolbar-hint">Одно нажатие: консоль сама откроет меню инструментов, выберет команду и подтвердит только соответствующее действие.</div>
         </section>
         <main class="content" id="content"></main>
-        <footer class="footer"><span>VLADIMIR · LEADER & DEPUTY</span><span>v2.6.5 · PANEL VISIBILITY</span></footer>
+        <footer class="footer"><span>VLADIMIR · LEADER & DEPUTY</span><span>v2.6.6 · PANEL VISIBILITY</span></footer>
       </div>
       <div class="resize-bottom" title="Потяни вверх или вниз, чтобы изменить высоту панели" aria-label="Изменить высоту панели"></div>
     </section>
@@ -744,7 +744,18 @@
     const records = (messages || []).slice(1).map(msg => ({ at: ldSlaDate(msg), role: ldSlaMessageRole(msg), author: ldSlaAuthor(msg) })).filter(x => Number.isFinite(x.at));
     const latestOf = list => list.reduce((best, item) => !best || item.at > best.at ? item : best, null);
     const latest = latestOf(records), player = latestOf(records.filter(x => x.role === 'player')), manager = latestOf(records.filter(x => x.role !== 'player'));
-    return { answered: latest ? latest.role !== 'player' : false, clockAt: latest?.role === 'player' ? latest.at : 0, lastReplyAt: latest?.at || 0, lastReplyRole: latest?.role || '', lastReplyAuthor: latest?.author || '', lastPlayerReplyAt: player?.at || 0, lastPlayerReplyAuthor: player?.author || '', lastManagerReplyAt: manager?.at || 0, lastManagerReplyRole: manager?.role || '', lastManagerReplyAuthor: manager?.author || '' };
+    return {
+      answered: latest ? latest.role !== 'player' : false,
+      clockAt: latest?.role === 'player' ? latest.at : 0,
+      lastReplyAt: latest?.at || 0,
+      lastReplyRole: latest?.role || '',
+      lastReplyAuthor: latest?.author || '',
+      lastPlayerReplyAt: player?.at || 0,
+      lastPlayerReplyAuthor: player?.author || '',
+      lastManagerReplyAt: manager?.at || 0,
+      lastManagerReplyRole: manager?.role || '',
+      lastManagerReplyAuthor: manager?.author || ''
+    };
   }
   function ldSlaListRole(node, scope) {
     if (!node) return 'unknown';
