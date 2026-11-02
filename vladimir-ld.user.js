@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Vladimir | Leader & Deputy Center
 // @namespace    Vladimir_Sudarikov.MatreshkaTools
-// @version      2.5.3
+// @version      2.5.4
 // @description  Leader/deputy SLA tracking with manual per-topic review marks.
 // @match        https://forum.matrp.ru/*
 // @run-at       document-idle
@@ -401,14 +401,11 @@
 
   function decorateForumMemberBadges(scope = document) {
     if (!scope?.querySelectorAll) return;
-    // Only actual username links, not every repeated profile link/avatar/signature.
-    const anchors = new Set();
-    if (scope.matches?.('a.username[href*="members/"], .memberHeader-name a[href*="members/"]')) anchors.add(scope);
-    for (const anchor of scope.querySelectorAll('a.username[href*="members/"], .memberHeader-name a[href*="members/"]')) {
-      anchors.add(anchor);
-    }
+    const anchors = [];
+    if (scope.matches?.('a[href*="members/"]')) anchors.push(scope);
+    anchors.push(...scope.querySelectorAll('a[href*="members/"]'));
     for (const anchor of anchors) {
-      if (!anchor.isConnected || anchor.closest(\`#\${APP_ID}\`) || anchor.querySelector('img,svg')) continue;
+      if (!anchor.isConnected || anchor.closest(`#${APP_ID}`) || anchor.querySelector('img,svg')) continue;
       const href = anchor.getAttribute('href') || '';
       const match = href.match(/members\/[^/?#]*\.([0-9]+)(?:\/|[?#]|$)/i);
       if (!match) continue;
@@ -416,24 +413,16 @@
       if (!info) continue;
       const username = (anchor.textContent || '').replace(/\s+/g, ' ').trim();
       if (!username || username.length > 70) continue;
-
-      // Remove adjacent duplicate badges for this member, then keep exactly one.
       let badge = anchor.previousElementSibling;
-      while (badge?.classList.contains('vldc-role-badge') && badge.dataset.userId === match[1]) {
-        const previous = badge.previousElementSibling;
-        badge.remove();
-        badge = previous;
-      }
-      badge = anchor.previousElementSibling;
       if (!badge?.classList.contains('vldc-role-badge') || badge.dataset.userId !== match[1]) {
         badge = document.createElement('span');
         badge.className = 'vldc-role-badge';
         badge.dataset.userId = match[1];
         anchor.insertAdjacentElement('beforebegin', badge);
       }
-      badge.className = \`vldc-role-badge vldc-role-badge--\${info.role}\`;
+      badge.className = `vldc-role-badge vldc-role-badge--${info.role}`;
       badge.textContent = info.label;
-      badge.title = \`\${info.label} · форумный аккаунт: \${username}\`;
+      badge.title = `${info.label} · форумный аккаунт: ${username}`;
       anchor.dataset.vldcRoleBadge = match[1];
     }
   }
@@ -548,7 +537,7 @@
     const loginMode = AUTO_ROLE ? 'автовход по аккаунту форума' : (CURRENT_FORUM_USER_ID ? 'персональный доступ' : 'вход до конца вкладки');
     $('#role-label').textContent = `${ACCESS[role].label} · ${loginMode}`;
     const topicToolbar = $('#topic-toolbar');
-    if (topicToolbar) topicToolbar.hidden = false;
+    if (topicToolbar) topicToolbar.hidden = role === 'observer';
     $('#login').hidden = true;
     $('#workspace').hidden = false;
     renderTab(sessionStorage.getItem(LAST_TAB_KEY) || 'common');
@@ -956,13 +945,22 @@
 
   function renderTools() {
     const roleLabel = ACCESS[activeRole]?.label || '';
+    if (activeRole === 'observer') {
+      content.innerHTML = `
+        <div class="section">✦ РЕЖИМ СЛЕДЯЩЕГО</div>
+        <div class="hint">Доступен просмотр общих тем, отчётности и раздела Гетто, а также локальные отметки проверки тем.</div>
+        <div class="hint">Кнопки открытия, закрытия и закрепления тем отключены. Шаблоны ответов и вставка сообщений недоступны.</div>
+        <div class="hint">Отметки проверки сохраняются только в этом браузере и не являются общей отметкой для других пользователей.</div>
+      `;
+      return;
+    }
     content.innerHTML = `
       <div class="section">✦ ЦЕНТР ОТВЕТОВ · ${esc(roleLabel)}</div>
       <div class="hint" style="border-color:#9b78b566;background:linear-gradient(110deg,#8b5cf622,#22c1bf12,#f0ab4b12);color:#eee2ff">Выбери ситуацию — подготовлю аккуратный ответ с цветным заголовком и выделенным решением. Перед отправкой проверь формулировки.</div>
       <label class="field"><span>Имя адресата (необязательно)</span><input id="recipient" placeholder="Например, Leader_Name"></label>
       <label class="field"><span>Причина / пояснение (необязательно)</span><input id="reason" placeholder="Причина отказа или нужное уточнение"></label>
       <div class="action-grid">
-        ${(ROLE_TEMPLATES[activeRole] || ROLE_TEMPLATES.leader).map((t,i)=>`<button class="action ${t.kind}" data-template="${i}">${esc(t.title)}<div class="muted">Вставить в ответ</div></button>`).join('')}
+        ${ROLE_TEMPLATES[activeRole].map((t,i)=>`<button class="action ${t.kind}" data-template="${i}">${esc(t.title)}<div class="muted">Вставить в ответ</div></button>`).join('')}
       </div>
       <div class="hint">Шаблоны используют цветное BBCode-оформление XenForo. Кнопки только вставляют текст в редактор или копируют его: ничего не отправляется автоматически.</div>
       <div class="hint">Управление темой вынесено в отдельную панель над содержимым и доступно на всех вкладках.</div>
@@ -1219,6 +1217,7 @@
       return;
     }
     if (btn.dataset.topic) {
+      if (activeRole === 'observer') { toast('В режиме следящего изменение тем недоступно.'); return; }
       await runTopicAction(btn.dataset.topic);
     }
   });
