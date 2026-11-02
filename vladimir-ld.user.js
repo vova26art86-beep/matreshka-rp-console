@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Vladimir | Leader & Deputy Center
 // @namespace    Vladimir_Sudarikov.MatreshkaTools
-// @version      2.6.0
+// @version      2.6.1
 // @description  Leader/deputy SLA tracking with manual per-topic review marks.
 // @match        https://forum.matrp.ru/*
 // @run-at       document-idle
@@ -317,7 +317,7 @@
           <div class="muted" id="topic-toolbar-hint">Одно нажатие: консоль сама откроет меню инструментов, выберет команду и подтвердит только соответствующее действие.</div>
         </section>
         <main class="content" id="content"></main>
-        <footer class="footer"><span>VLADIMIR · LEADER & DEPUTY</span><span>v2.6.0 · ROLE BADGES</span></footer>
+        <footer class="footer"><span>VLADIMIR · LEADER & DEPUTY</span><span>v2.6.1 · ROLE BADGES</span></footer>
       </div>
       <div class="resize-bottom" title="Потяни вверх или вниз, чтобы изменить высоту панели" aria-label="Изменить высоту панели"></div>
     </section>
@@ -579,9 +579,15 @@
     });
   }
   function toast(msg) {
-    document.querySelectorAll(`#${APP_ID} .toast`).forEach(n => n.remove());
-    const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg; root.appendChild(t);
-    clearTimeout(toastTimer); toastTimer = setTimeout(() => t.remove(), 3000);
+    document.querySelectorAll(`#${APP_ID} .toast`).forEach((node) => node.remove());
+
+    const toastElement = document.createElement('div');
+    toastElement.className = 'toast';
+    toastElement.textContent = String(msg ?? '');
+    root.appendChild(toastElement);
+
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toastElement.remove(), 3000);
   }
 
   async function verifyPassword(input, role) {
