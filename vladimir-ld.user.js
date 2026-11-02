@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Vladimir | Leader & Deputy Center
 // @namespace    Vladimir_Sudarikov.MatreshkaTools
-// @version      2.5.0
+// @version      2.5.1
 // @description  Leader/deputy SLA tracking with manual per-topic review marks.
 // @match        https://forum.matrp.ru/*
 // @run-at       document-idle
@@ -462,13 +462,26 @@
   }
   // Identify the currently signed-in XenForo member; role is derived from member ID, not game nickname.
   function detectForumUserId() {
+    // Prefer XenForo's own runtime visitor ID when available; it is more reliable
+    // than depending on a particular theme's navigation markup.
+    const runtimeIds = [
+      window.XF?.config?.userId,
+      window.XF?.config?.visitor?.userId,
+      document.documentElement?.getAttribute('data-user-id'),
+      document.body?.getAttribute('data-user-id')
+    ];
+    for (const value of runtimeIds) {
+      const id = String(value ?? '').trim();
+      if (/^[1-9][0-9]*$/.test(id)) return id;
+    }
+
     // XenForo skins differ: profile links may be in the user nav, account menu,
     // or rendered as a query-string route (index.php?members/name.123/).
     const navRoots = [
-      ...document.querySelectorAll('.p-navgroup, .p-nav, .p-header, .js-accountMenu, .menu-content')
+      ...document.querySelectorAll('.p-navgroup, .p-nav, .p-header, .js-accountMenu, .menu-content, .offCanvasMenu')
     ];
     const candidates = new Set([
-      ...document.querySelectorAll('.p-navgroup-link--user[href], .p-navgroup-link--user a[href], .p-navgroup a[href*="members/"], .js-accountMenu a[href*="members/"], .menu-content a[href*="members/"]')
+      ...document.querySelectorAll('.p-navgroup-link--user[href], .p-navgroup-link--user a[href], .p-navgroup a[href*="members/"], .js-accountMenu a[href*="members/"], .menu-content a[href*="members/"], .offCanvasMenu a[href*="members/"]')
     ]);
     for (const rootNode of navRoots) {
       for (const node of rootNode.querySelectorAll('a[href], [data-user-id], [data-member-id]')) {
@@ -484,15 +497,11 @@
       if (match && /members\//i.test(href)) return match[1];
     }
 
-    // Fallback for this account when a forum theme hides the profile URL
-    // but shows the signed-in username in XenForo's user navigation.
+    // Account-name fallback is only checked inside the signed-in navigation.
     const signedInNav = document.querySelector('.p-navgroup-link--user, .p-navgroup .username, .p-navgroup .p-navgroup-link');
     const navText = (signedInNav?.textContent || '').replace(/^\s+|\s+$/g, '').toLowerCase();
     const navHref = signedInNav?.getAttribute?.('href') || '';
-    if ((navText.includes('vladimir_sudarikov') || /members\/vladimir_sudarikov\.341059/i.test(navHref))
-      && (document.querySelector('.p-navgroup .p-navgroup-link--user, .p-navgroup-link--user') || /members\/vladimir_sudarikov\.341059/i.test(navHref))) {
-      return '341059';
-    }
+    if (navText.includes('vladimir_sudarikov') || /members\/vladimir_sudarikov\.341059/i.test(navHref)) return '341059';
     return '';
   }
   const CURRENT_FORUM_USER_ID = detectForumUserId();
