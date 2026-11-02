@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Vladimir Console — Matreshka RP (4.6.4 · leadership and player reply tracking)
 // @namespace    Vladimir_Sudarikov.AtelierConsole
-// @version      4.7.5
+// @version      4.7.6
 // @description  Персональная консоль: цвет ника точно берётся из текста плашки Egor_Andyfy; кнопка копирования образца убрана
 // @match        https://forum.matrp.ru/*
 // @match        http://forum.matrp.ru/*
@@ -163,6 +163,19 @@
     #${IDS.panel} .va340-sla-summary{display:grid;gap:4px;margin-top:7px;padding:9px 10px;border:1px solid var(--va-line);border-radius:10px;background:var(--va-card2);color:var(--va-text)}
     #${IDS.panel} .va340-sla-summary strong{font-size:10px;font-weight:900;letter-spacing:.1em;text-transform:uppercase}
     #${IDS.panel} .va340-sla-summary span{font-size:10px;color:var(--va-muted);line-height:1.4}
+    /* Vladimir Atelier · refined glass finish */
+    #${IDS.panel}{backdrop-filter:blur(18px)!important;border-color:#b8a2ff66!important;box-shadow:0 24px 80px #05040dbb,0 0 0 1px #ffffff08,inset 0 1px #ffffff16!important}
+    #${IDS.panel} .va-head{background:linear-gradient(115deg,var(--va-card2),color-mix(in srgb,var(--va-accent,#a78bfa) 12%,var(--va-card2)))!important;border-bottom:1px solid var(--va-line)!important}
+    #${IDS.panel} .va-brand{letter-spacing:.11em!important;text-shadow:0 0 22px color-mix(in srgb,var(--va-accent,#a78bfa) 25%,transparent)}
+    #${IDS.panel} .va-label{display:flex;align-items:center;gap:8px}
+    #${IDS.panel} .va-label:before{content:"";width:4px;height:13px;border-radius:5px;background:var(--va-accent,#a78bfa);box-shadow:0 0 12px color-mix(in srgb,var(--va-accent,#a78bfa) 45%,transparent)}
+    #${IDS.panel} .va-btn,#${IDS.panel} .va-reply,#${IDS.panel} .va340-prefix-button{transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease,filter .16s ease!important}
+    #${IDS.panel} .va-btn:hover,#${IDS.panel} .va-reply:hover{transform:translateY(-2px)!important;box-shadow:0 8px 20px #0003!important;border-color:var(--va-accent,#a78bfa)!important}
+    #${IDS.panel} input,#${IDS.panel} select,#${IDS.panel} textarea{border-radius:10px!important;transition:border-color .15s ease,box-shadow .15s ease!important}
+    #${IDS.panel} input:focus,#${IDS.panel} select:focus,#${IDS.panel} textarea:focus{outline:none!important;border-color:var(--va-accent,#a78bfa)!important;box-shadow:0 0 0 3px color-mix(in srgb,var(--va-accent,#a78bfa) 20%,transparent)!important}
+    #${IDS.panel} .va-status{border-radius:10px!important}
+    #${IDS.panel} .va-bottom-resize:after{box-shadow:0 0 10px color-mix(in srgb,var(--va-accent,#a78bfa) 35%,transparent)!important}
+    @media(prefers-reduced-motion:reduce){#${IDS.panel} *,#${IDS.launcher}{transition:none!important;animation:none!important}}
     #${IDS.panel} .va340-sla-chip{display:inline-block!important;width:max-content;max-width:100%;white-space:normal!important;line-height:1.45!important;overflow-wrap:anywhere!important;margin-top:6px!important;padding:3px 7px;border-radius:8px;background:#fb718522;color:#fb7185!important;font-size:9px!important;font-weight:900;letter-spacing:.02em}
     #${IDS.panel} .va340-sla-row-overdue{outline:2px solid #fb7185!important;outline-offset:-2px!important;background-color:#7f1d1d22!important}
     #${IDS.panel} .va340-sla-row-near{outline:1px solid #fbbf24aa!important;outline-offset:-1px!important}
