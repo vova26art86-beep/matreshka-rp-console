@@ -1,9 +1,10 @@
 // ==UserScript==
 // @name         Vladimir | Leader & Deputy Center
 // @namespace    Vladimir_Sudarikov.MatreshkaTools
-// @version      2.6.6
-// @description  Leader/deputy SLA tracking with manual per-topic review marks.
-// @match        https://forum.matrp.ru/*
+// @version      2.6.7
+// @description  Leader/deputy SLA tracking with startup diagnostics and resilient panel boot.
+// @match        *://forum.matrp.ru/*
+// @noframes
 // @run-at       document-idle
 // @grant        none
 // @downloadURL  https://raw.githubusercontent.com/vova26art86-beep/matreshka-rp-console/main/vladimir-ld.user.js
@@ -11,6 +12,7 @@
 // ==/UserScript==
 
 (() => {
+  try {
   'use strict';
 
   // Quiet Mode: intentionally no fetch/XHR, polling, auto-refresh, cache purge, or scripted forum clicks.
@@ -295,7 +297,7 @@
 
   const root = document.createElement('div');
   root.id = APP_ID;
-  root.setAttribute('data-console-version', '2.6.0');
+  root.setAttribute('data-console-version', '2.6.7');
   root.innerHTML = `
     <section class="panel" aria-label="Leader and Deputy Center">
       <header class="head">
@@ -329,7 +331,7 @@
           <div class="muted" id="topic-toolbar-hint">Одно нажатие: консоль сама откроет меню инструментов, выберет команду и подтвердит только соответствующее действие.</div>
         </section>
         <main class="content" id="content"></main>
-        <footer class="footer"><span>VLADIMIR · LEADER & DEPUTY</span><span>v2.6.6 · PANEL VISIBILITY</span></footer>
+        <footer class="footer"><span>VLADIMIR · LEADER & DEPUTY</span><span>v2.6.7 · STARTUP CHECK</span></footer>
       </div>
       <div class="resize-bottom" title="Потяни вверх или вниз, чтобы изменить высоту панели" aria-label="Изменить высоту панели"></div>
     </section>
@@ -580,7 +582,13 @@
   const CURRENT_FORUM_USER_ID = detectForumUserId();
   const AUTO_ROLE = ACCOUNT_ROLE_BY_ID[CURRENT_FORUM_USER_ID] || '';
   // Never reuse a global remembered role: it could give a deputy the LD view on a shared browser.
-  let activeRole = AUTO_ROLE || (CURRENT_FORUM_USER_ID ? localStorage.getItem(`${ACCOUNT_ROLE_KEY_PREFIX}${CURRENT_FORUM_USER_ID}`) : '') || '';
+  let savedAccountRole = '';
+  try {
+    savedAccountRole = CURRENT_FORUM_USER_ID ? (localStorage.getItem(`${ACCOUNT_ROLE_KEY_PREFIX}${CURRENT_FORUM_USER_ID}`) || '') : '';
+  } catch (error) {
+    console.warn('[Leader & Deputy Center] localStorage недоступен; сохранение роли отключено.', error);
+  }
+  let activeRole = AUTO_ROLE || savedAccountRole;
   if (!ACCESS[activeRole]) activeRole = '';
   let toastTimer = 0;
 
@@ -1332,4 +1340,17 @@
   $('#password').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); $('[data-act="login"]').dispatchEvent(new MouseEvent('click', {bubbles:true})); } });
 
   if (activeRole && ACCESS[activeRole]) setRole(activeRole);
+  } catch (error) {
+    console.error('[Leader & Deputy Center] Ошибка запуска панели:', error);
+    const showError = () => {
+      if (document.getElementById('vldc-startup-error')) return;
+      const box = document.createElement('div');
+      box.id = 'vldc-startup-error';
+      box.textContent = 'Vladimir LD: ошибка запуска панели. Откройте консоль (F12) и отправьте разработчику ошибку.';
+      box.style.cssText = 'position:fixed;right:12px;bottom:12px;z-index:2147483647;max-width:360px;padding:12px 14px;border:2px solid #f87171;border-radius:10px;background:#450a0a;color:#fff;font:13px/1.4 Arial,sans-serif;box-shadow:0 4px 18px #0008';
+      (document.body || document.documentElement).appendChild(box);
+    };
+    if (document.body || document.documentElement) showError();
+    else document.addEventListener('DOMContentLoaded', showError, { once: true });
+  }
 })();
