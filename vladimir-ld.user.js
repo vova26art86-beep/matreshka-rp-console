@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Vladimir | Leader & Deputy Center
 // @namespace    Vladimir_Sudarikov.MatreshkaTools
-// @version      2.5.9
+// @version      2.6.0
 // @description  Leader/deputy SLA tracking with manual per-topic review marks.
 // @match        https://forum.matrp.ru/*
 // @run-at       document-idle
@@ -80,8 +80,11 @@
       };
     } catch { return { top: DEFAULT_PANEL_TOP, left: Math.max(8, window.innerWidth - DEFAULT_PANEL_WIDTH - 16), width: DEFAULT_PANEL_WIDTH, height: DEFAULT_PANEL_HEIGHT }; }
   };
-  const getSavedPanelOpen = () => { try { return localStorage.getItem(PANEL_OPEN_KEY) === '1'; } catch { return false; } };
-  if (window.top !== window.self || document.getElementById(APP_ID)) return;
+  const getSavedPanelOpen = () => { try { return localStorage.getItem(PANEL_OPEN_KEY) !== '0'; } catch { return true; } };
+  if (window.top !== window.self) return;
+  // Rebuild a stale panel left behind by an older or partially failed script run.
+  const staleRoot = document.getElementById(APP_ID);
+  if (staleRoot) staleRoot.remove();
 
   // Only salted PBKDF2 hashes are stored here; plaintext passwords are not embedded.
   // These are local UI gates, not forum permissions. XenForo remains authoritative.
@@ -280,7 +283,7 @@
 
   const root = document.createElement('div');
   root.id = APP_ID;
-  root.setAttribute('data-console-version', '2.5.0');
+  root.setAttribute('data-console-version', '2.6.0');
   root.innerHTML = `
     <section class="panel" aria-label="Leader and Deputy Center">
       <header class="head">
@@ -314,7 +317,7 @@
           <div class="muted" id="topic-toolbar-hint">Одно нажатие: консоль сама откроет меню инструментов, выберет команду и подтвердит только соответствующее действие.</div>
         </section>
         <main class="content" id="content"></main>
-        <footer class="footer"><span>VLADIMIR · LEADER & DEPUTY</span><span>v2.5.7 · ROLE BADGES</span></footer>
+        <footer class="footer"><span>VLADIMIR · LEADER & DEPUTY</span><span>v2.6.0 · ROLE BADGES</span></footer>
       </div>
       <div class="resize-bottom" title="Потяни вверх или вниз, чтобы изменить высоту панели" aria-label="Изменить высоту панели"></div>
     </section>
