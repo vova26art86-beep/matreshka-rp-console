@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name         Vladimir Console — Matreshka RP (4.7.0 · LD SLA sync)
+// @name         Vladimir Console — Matreshka RP (4.6.4 · leadership and player reply tracking)
 // @namespace    Vladimir_Sudarikov.AtelierConsole
-// @version      4.7.0
-// @description  Персональная консоль с логикой контроля сроков, синхронизированной с ЛД
+// @version      4.7.1
+// @description  Персональная консоль: цвет ника точно берётся из текста плашки Egor_Andyfy; кнопка копирования образца убрана
 // @match        https://forum.matrp.ru/*
 // @match        http://forum.matrp.ru/*
 // @run-at       document-idle
@@ -42,7 +42,7 @@
   const DEFAULTS = { theme: 'obsidian', accent: '#a78bfa', notes: '', minimized: false, top: 82, right: 18, replyName: '', replyReason: '', cacheEnabled: true, cacheTtlMinutes: 30 };
 
   if (location.hostname !== 'forum.matrp.ru') {
-    console.warn('[Vladimir Console 4.6.1] Скрипт рассчитан на https://forum.matrp.ru/');
+    console.warn('[Vladimir Console 4.7.1] Скрипт рассчитан на https://forum.matrp.ru/');
     return;
   }
   if (document.getElementById(IDS.launcher)) return;
@@ -71,7 +71,7 @@
   const style = document.createElement('style');
   style.id = IDS.style;
   style.textContent = `
-    #${IDS.launcher}{all:initial!important;position:fixed!important;top:12px!important;left:auto!important;right:16px!important;bottom:auto!important;z-index:2147483647!important;display:flex!important;align-items:center!important;gap:9px!important;padding:10px 15px!important;border:1px solid #ffffff50!important;border-radius:14px!important;background:linear-gradient(115deg,#c4b5fd,#75e5cf)!important;color:#171322!important;font:900 12px/1.2 Arial,sans-serif!important;letter-spacing:.08em!important;box-shadow:0 10px 30px #0009!important;cursor:pointer!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important}
+    #${IDS.launcher}{all:initial!important;position:fixed!important;top:auto!important;left:auto!important;right:16px!important;bottom:12px!important;z-index:2147483647!important;display:flex!important;align-items:center!important;gap:9px!important;padding:10px 15px!important;border:1px solid #ffffff50!important;border-radius:14px!important;background:linear-gradient(115deg,#c4b5fd,#75e5cf)!important;color:#171322!important;font:900 12px/1.2 Arial,sans-serif!important;letter-spacing:.08em!important;box-shadow:0 10px 30px #0009!important;cursor:pointer!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important}
     #${IDS.launcher}:hover{filter:brightness(1.08)!important;transform:translateY(-1px)}
     #${IDS.launcher} .vmark{display:grid;place-items:center;width:25px;height:25px;border-radius:8px;background:#ffffff8a;font-size:12px}
     #${IDS.panel},#${IDS.auth}{font-family:Arial,sans-serif!important;box-sizing:border-box!important;color:#f4f1ff}
@@ -163,43 +163,8 @@
     #${IDS.panel} .va340-sla-row-near{outline:1px solid #fbbf24aa!important;outline-offset:-1px!important}
     .va340-thread-overdue{display:inline-flex!important;margin:5px 0!important;padding:5px 9px!important;border:1px solid #fb7185!important;border-radius:8px!important;background:#7f1d1d!important;color:#fff!important;font:900 11px/1.3 Arial,sans-serif!important}
     .va340-thread-due{display:inline-flex!important;margin:5px 0!important;padding:5px 9px!important;border:1px solid #fbbf24!important;border-radius:8px!important;background:#78350f!important;color:#fff!important;font:800 11px/1.3 Arial,sans-serif!important}
-    @media(max-width:480px){#${IDS.panel} .va-reply-grid{grid-template-columns:1fr 1fr}}
-    @media(max-width:600px){
-      #${IDS.launcher}{left:auto!important;right:max(6px,env(safe-area-inset-right))!important;top:max(8px,env(safe-area-inset-top))!important;max-width:calc(100vw - 12px)!important;min-height:44px!important;padding:9px 12px!important;font-size:11px!important}
-      #${IDS.panel}{left:auto!important;right:6px!important;width:calc(100vw - 12px)!important;max-width:calc(100vw - 12px)!important;max-height:var(--va-mobile-panel-max-height,calc(100dvh - 90px))!important;border-radius:14px!important}
-      #${IDS.panel} .va-head{gap:7px!important;padding:9px 10px!important;min-height:54px!important}
-      #${IDS.panel} .va-brand{font-size:12px!important;letter-spacing:.04em!important}
-      #${IDS.panel} .va-sub{font-size:9px!important;overflow-wrap:anywhere!important}
-      #${IDS.panel} .va-head button{width:40px!important;height:40px!important;flex:0 0 40px!important;border-radius:11px!important;font-size:16px!important;touch-action:manipulation}
-      #${IDS.panel} .va-body{gap:10px!important;padding:10px!important;max-height:var(--va-mobile-body-max-height,calc(100dvh - 150px))!important;overflow-y:auto!important;overflow-x:hidden!important;touch-action:pan-y!important;-webkit-overflow-scrolling:touch!important}
-      #${IDS.panel} .va-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:7px!important}
-      #${IDS.panel} .va-btn{min-height:46px!important;padding:10px!important;font-size:12px!important;overflow-wrap:anywhere!important;touch-action:manipulation}
-      #${IDS.panel} .va-small{min-height:42px!important;padding:10px!important;font-size:12px!important;touch-action:manipulation}
-      #${IDS.panel} input,#${IDS.panel} textarea,#${IDS.panel} select{min-height:44px!important;padding:10px!important;font-size:16px!important}
-      #${IDS.panel} .va-row{gap:7px!important;flex-wrap:wrap!important}
-      #${IDS.panel} .va-row>*{min-width:0!important;flex:1 1 125px!important}
-      #${IDS.panel} .va-reply-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:7px!important}
-      #${IDS.panel} .va-reply{min-height:54px!important;padding:9px!important;font-size:11px!important;overflow-wrap:anywhere!important}
-      #${IDS.panel} .va340-prefix-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:7px!important}
-      #${IDS.panel} .va-footer-top,#${IDS.panel} .va-footer-bottom{align-items:flex-start!important;flex-wrap:wrap!important;gap:5px 9px!important}
-      #${IDS.panel} .va-footer-note{font-size:10px!important}
-      #${IDS.auth}{padding:max(10px,env(safe-area-inset-top)) 10px max(10px,env(safe-area-inset-bottom))!important;overflow-y:auto!important;align-items:start!important}
-      #${IDS.auth} .va-card{width:100%!important;max-width:440px!important;max-height:calc(100dvh - 20px)!important;overflow-y:auto!important;margin:auto!important;padding:18px!important}
-      #${IDS.auth} input{min-height:46px!important;font-size:16px!important}
-      #${IDS.auth} button{min-height:44px!important}
-    }
-    @media(max-width:360px){
-      #${IDS.panel} .va-grid{grid-template-columns:1fr!important}
-      #${IDS.panel} .va-reply-grid{grid-template-columns:1fr!important}
-      #${IDS.panel} .va340-prefix-grid{grid-template-columns:1fr!important}
-      #${IDS.panel} .va-row>*{flex-basis:100%!important}
-    }
-    @media(orientation:landscape) and (max-height:520px) and (max-width:900px){
-      #${IDS.panel}{max-height:var(--va-mobile-panel-max-height,calc(100dvh - 16px))!important}
-      #${IDS.panel} .va-body{max-height:var(--va-mobile-body-max-height,calc(100dvh - 90px))!important}
-      #${IDS.panel} .va-footer{gap:4px!important;padding:7px!important}
-      #${IDS.panel} .va-footer-note{display:none!important}
-    }
+    @media(max-width:480px){#${IDS.panel} .va-reply-grid{grid-template-columns:1fr 1fr}} 
+    @media(max-width:480px){#${IDS.launcher}{left:auto!important;right:10px!important;top:auto!important;bottom:10px!important}#${IDS.panel}{left:auto!important;width:calc(100vw - 20px)!important;max-height:calc(100vh - 70px)!important}#${IDS.panel} .va-body{max-height:calc(100vh - 125px)!important}}
   `;
 
   const launcher = document.createElement('button');
@@ -291,8 +256,8 @@
       <section><div class="va-label">Личные заметки</div><textarea id="va320-notes" placeholder="Идеи, ссылки, напоминания…"></textarea><div class="va-row" style="margin-top:7px"><button class="va-small" id="va320-save-notes">Сохранить</button><button class="va-small" id="va320-clear-notes">Очистить</button></div></section>
       <section><div class="va-label">Персонализация</div><div class="va-row"><select id="va320-theme"><option value="obsidian">Obsidian · тёмная</option><option value="pearl">Pearl · светлая</option><option value="forest">Forest · зелёная</option></select><input id="va320-accent" type="color" aria-label="Акцентный цвет" style="max-width:50px;padding:3px"></div><button class="va-small" id="va320-reset-style" style="width:100%;margin-top:7px">Сбросить оформление</button></section>
       <div class="va-footer">
-        <div class="va-footer-top"><span class="va-footer-brand">✦ ATELIER CONSOLE · 4.6.8</span><span class="va-footer-state"><i></i> GITHUB · AUTOUPDATE</span></div>
-        <div class="va-footer-bottom"><span>Matreshka RP · автообновления через GitHub</span><span>ALT + M</span></div>
+        <div class="va-footer-top"><span class="va-footer-brand">✦ ATELIER CONSOLE · 4.5.0</span><span class="va-footer-state"><i></i> ЛОКАЛЬНО</span></div>
+        <div class="va-footer-bottom"><span>Matreshka RP · личная панель</span><span>ALT + M</span></div>
         <div class="va-footer-note">Шаблоны добавляют только текст ответа. Префиксы выбираются отдельно — так черновик не пропадает при вставке.</div>
       </div>
     </main>`;
@@ -347,15 +312,9 @@
     const pos = clampPanelPosition(settings.top, settings.right);
     settings.top = pos.top;
     settings.right = pos.right;
-    const viewportHeight = window.visualViewport?.height || window.innerHeight;
-    const isMobileViewport = window.innerWidth <= 600;
-    const displayTop = isMobileViewport ? Math.min(pos.top, Math.max(8, viewportHeight - 180)) : pos.top;
-    const displayRight = isMobileViewport ? 6 : pos.right;
-    panel.style.setProperty('top', `${displayTop}px`, 'important');
-    panel.style.setProperty('right', `${displayRight}px`, 'important');
+    panel.style.setProperty('top', `${pos.top}px`, 'important');
+    panel.style.setProperty('right', `${pos.right}px`, 'important');
     panel.style.setProperty('left', 'auto', 'important');
-    panel.style.setProperty('--va-mobile-panel-max-height', `${Math.max(220, viewportHeight - displayTop - 8)}px`);
-    panel.style.setProperty('--va-mobile-body-max-height', `${Math.max(130, viewportHeight - displayTop - 88)}px`);
     if (save) saveSettings();
   }
   function movePanelVertically(delta) {
@@ -391,6 +350,10 @@
 
   function showPanel() {
     panel.classList.add('va-show');
+    // Открываем панель над нижней кнопкой запуска, чтобы она поднималась снизу и не уходила за экран.
+    const panelHeight = panel.getBoundingClientRect().height || Math.min(520, window.innerHeight - 80);
+    settings.top = Math.max(8, window.innerHeight - panelHeight - 66);
+    applyPanelPosition(false);
     const body = inPanel('va320-body');
     body.hidden = !!settings.minimized;
     inPanel('va320-min').textContent = settings.minimized ? '+' : '−';
@@ -960,37 +923,15 @@
     saveTrackedSlaItems();
   }
 
-  // Match the LD Center: 24 hours from the latest player reply (or topic creation),
-  // closed when the latest reply comes from a leader/deputy/admin.
   function getSlaClockStart(item) {
     const lastAt = Number(item?.lastReplyAt) || 0;
     const lastRole = String(item?.lastReplyRole || item?.latestAuthorRole || '');
     if (lastRole === 'player' && lastAt > 0) return lastAt;
     const playerAt = Number(item?.lastPlayerReplyAt) || 0;
-    return playerAt > 0 ? playerAt : (Number(item?.createdAt) || 0);
+    if (playerAt > lastAt && playerAt > 0) return playerAt;
+    return Number(item?.createdAt) || 0;
   }
   function getSlaDeadline(item) { return getSlaClockStart(item) + ONE_DAY_MS; }
-  function formatSlaCountdown(ms) {
-    const abs = Math.max(0, Number(ms) || 0);
-    const hours = Math.floor(abs / ONE_HOUR_MS);
-    const minutes = Math.floor((abs % ONE_HOUR_MS) / 60000);
-    return `${hours} ч ${String(minutes).padStart(2, '0')} мин`;
-  }
-  function getSlaDisplayStatus(item, now = Date.now()) {
-    const left = getSlaDeadline(item) - now;
-    if (item?.answered === true) {
-      return { state: 'answered', left, text: '✓ Ответ лидера / заместителя / администрации найден' };
-    }
-    if (left <= 0) {
-      return item?.answered === false
-        ? { state: 'overdue', left, text: `⚠ СРОК ИСТЁК · ${formatSlaCountdown(-left)} · ответ не найден среди загруженных сообщений` }
-        : { state: 'overdue-unverified', left, text: `⚠ СРОК ИСТЁК · ${formatSlaCountdown(-left)} · ответ ещё не проверен` };
-    }
-    if (left <= 3 * ONE_HOUR_MS) {
-      return { state: 'near', left, text: `⏳ Скоро срок: ${formatSlaCountdown(left)}` };
-    }
-    return { state: 'pending', left, text: `До срока: ${formatSlaCountdown(left)}${item?.answered === null ? ' · ответ не проверен' : ''}` };
-  }
   function getSlaPriority(item, now = Date.now()) {
     const deadline = getSlaDeadline(item);
     const overdue = deadline <= now;
@@ -1056,8 +997,7 @@
       return d.getTime();
     }
     const numeric = text.match(/\b(\d{1,2})[.\-/](\d{1,2})[.\-/](\d{2,4})(?:[, ]+.*?\b(\d{1,2}):(\d{2})(?::(\d{2}))?)?\b/);
-    if (numeric) {
-      let year = Number(numeric[3]); if (year < 100) year += year < 70 ? 2000 : 1900;
+    if (numeric) {      let year = Number(numeric[3]); if (year < 100) year += year < 70 ? 2000 : 1900;
       return new Date(year, Number(numeric[2]) - 1, Number(numeric[1]), Number(numeric[4] || 0), Number(numeric[5] || 0), Number(numeric[6] || 0)).getTime();
     }
     const months = {янв:0,январ:0,фев:1,март:2,мар:2,апр:3,май:4,мая:4,июн:5,июль:6,июл:6,авг:7,сент:8,сен:8,окт:9,нояб:10,ноя:10,дек:11,jan:0,feb:1,mar:2,apr:3,may:4,jun:5,jul:6,aug:7,sep:8,oct:9,nov:10,dec:11};
@@ -1168,8 +1108,7 @@
     const latestPlayer = records.filter(item => item.role === 'player').reduce((best, item) => !best || item.at > best.at ? item : best, null);
     const latestManager = records.filter(item => item.role !== 'player').reduce((best, item) => !best || item.at > best.at ? item : best, null);
     return {
-      // As in LD: if a topic has no replies yet, its 24-hour clock starts at creation.
-      answered: latest ? latest.role !== 'player' : false,
+      answered: latest ? latest.role !== 'player' : null,
       lastReplyAt: latest?.at || 0, lastReplyRole: latest?.role || '', lastReplyAuthor: latest?.author || '',
       lastPlayerReplyAt: latestPlayer?.at || 0, lastPlayerReplyAuthor: latestPlayer?.author || '',
       lastManagerReplyAt: latestManager?.at || 0, lastManagerReplyRole: latestManager?.role || '', lastManagerReplyAuthor: latestManager?.author || ''
@@ -1237,18 +1176,24 @@
       badge.className = 'va340-sla-chip';
       title.appendChild(badge);
     }
-    const status = getSlaDisplayStatus(item);
-    row.classList.toggle('va340-sla-row-overdue', status.state === 'overdue');
-    row.classList.toggle('va340-sla-row-near', status.state === 'near' || status.state === 'overdue-unverified');
-    badge.textContent = status.text;
-    if (status.state === 'answered') {
+    const left = getSlaDeadline(item) - Date.now();
+    const overdue = left <= 0 && answered === false;
+    const near = left > 0 && left < 3 * 3600000;
+    row.classList.toggle('va340-sla-row-overdue', overdue);
+    row.classList.toggle('va340-sla-row-near', near);
+    if (answered === true) {
+      badge.textContent = '✓ ОТВЕТ ЛИДЕРА / ЗАМЕСТИТЕЛЯ / АДМИНИСТРАЦИИ НАЙДЕН';
       badge.style.background = '#10b98125'; badge.style.color = '#34d399';
-    } else if (status.state === 'overdue') {
+    } else if (overdue) {
+      badge.textContent = '⚠ ПРОСРОЧЕНО · ' + timeLabel(-left);
       badge.style.background = ''; badge.style.color = '';
-    } else if (status.state === 'overdue-unverified' || status.state === 'near') {
+    } else if (left <= 0) {
+      badge.textContent = '⚠ ПРОСРОЧКА · ответ ещё не подтверждён';
       badge.style.background = '#f59e0b25'; badge.style.color = '#fbbf24';
     } else {
-      badge.style.background = '#8b5cf622'; badge.style.color = 'var(--va-muted)';
+      badge.textContent = 'До просрочки: ' + timeLabel(left) + (answered === null ? ' · ответ не проверен' : '');
+      badge.style.background = near ? '#f59e0b25' : '#8b5cf622';
+      badge.style.color = near ? '#fbbf24' : 'var(--va-muted)';
     }
     const activityText = slaActivityLabel(item);
     if (activityText) badge.textContent += ' · ' + activityText;
@@ -1291,10 +1236,21 @@
     const item = card?._vaSlaItem;
     const status = card?.querySelector('.va340-sla-card-status');
     if (!item || !status) return;
-    const display = getSlaDisplayStatus(item, now);
+    const left = getSlaDeadline(item) - now;
     card.classList.remove('answered', 'overdue', 'near', 'overdue-unverified');
-    status.textContent = display.text;
-    card.classList.add(display.state);
+    if (item.answered === true) {
+      status.textContent = 'Ответ лидера / заместителя / администрации найден.';
+      card.classList.add('answered');
+    } else if (left <= 0 && item.answered === false) {
+      status.textContent = 'ПРОСРОЧЕНО на ' + timeLabel(-left) + ' — ответ лидера / заместителя / администрации не найден.';
+      card.classList.add('overdue');
+    } else if (left <= 0) {
+      status.textContent = 'СРОК ИСТЁК на ' + timeLabel(-left) + ' — ответ не проверен; требуется повторная проверка.';
+      card.classList.add('overdue-unverified');
+    } else {
+      status.textContent = 'До просрочки: ' + timeLabel(left) + (item.answered === null ? ' · ответ ещё не проверен' : ' · ожидает рассмотрения');
+      if (left < 3 * 3600000) card.classList.add('near');
+    }
     const activityText = slaActivityLabel(item);
     if (activityText) status.textContent += ' · ' + activityText;
   }
@@ -1516,9 +1472,16 @@
       badge = document.createElement('span');
       titleNode.insertAdjacentElement('afterend', badge);
     }
-    const display = getSlaDisplayStatus(item);
-    badge.className = display.state === 'overdue' || display.state === 'overdue-unverified' ? slaStyles.overdue : slaStyles.due;
-    badge.textContent = display.text + (slaActivityLabel(item) ? ' · ' + slaActivityLabel(item) : '');
+    const left = getSlaDeadline(item) - Date.now();
+    badge.className = item.answered === true || left > 0 || item.answered === null ? slaStyles.due : slaStyles.overdue;
+    const mainStatus = item.answered === true
+      ? ' ✓ Ответ администрации / руководства найден'
+      : left <= 0 && item.answered === false
+        ? ' ⚠ ПРОСРОЧЕНО: ответ руководства не найден · ' + timeLabel(-left)
+        : left <= 0
+          ? ' ⚠ СРОК ИСТЁК: ответ ещё не проверен · ' + timeLabel(-left)
+          : ' ⏳ До просрочки: ' + timeLabel(left);
+    badge.textContent = mainStatus + (slaActivityLabel(item) ? ' · ' + slaActivityLabel(item) : '');
   }
   function inspectCurrentThread() {
     const ctx = inPanel('va340-context-status');
@@ -1925,7 +1888,7 @@
       statusNode.textContent = 'Префикс «' + chosenLabel + '» сохранён.' + stateSuffix + ' Шаблоны ответа не изменяются.';
       logActivity('Префикс сохранён: ' + chosenLabel + (threadStateResult?.message ? ' · ' + threadStateResult.message : ''));
     } catch (error) {
-      console.error('[Vladimir Console 4.6.1] Prefix error:', error);
+      console.error('[Vladimir Console 4.7.1] Prefix error:', error);
       statusNode.textContent = 'Ошибка префикса: ' + (error?.message || String(error)) + '. Для подробностей открой F12 → Console.';
     }
   }
@@ -2033,8 +1996,7 @@
           ['', '#b99aff', false],
           [thanks, '#8db6ff', false]
         ]
-      },
-      resolved: {
+      },      resolved: {
         label: 'Жалоба решена',
         blocks: [
           ['Здравствуйте, уважаемый(ая) ' + name, '#b99aff', true],
@@ -2219,7 +2181,7 @@
       inPanel('va330-reply-status').textContent = 'Ответ «' + label + '» добавлен в редактор. Проверь текст перед отправкой.';
       logActivity(label + ' · вставлено');
     } catch (error) {
-      console.warn('[Vladimir Console 4.6.1] Не удалось вставить форматированный ответ:', error);
+      console.warn('[Vladimir Console 4.7.1] Не удалось вставить форматированный ответ:', error);
       copyText(bbcode);
       inPanel('va330-reply-status').textContent = 'Автовставка не сработала — BBCode скопирован, вставь Ctrl+V.';
       logActivity(label + ' · скопировано');
@@ -2271,7 +2233,7 @@
     });
     const names = editForms[0] ? [...editForms[0].options].map(o => (o.textContent || '').trim()).filter(Boolean) : [];
     inPanel('va340-prefix-status').textContent = 'Тема: ' + (isThreadUrl() ? 'распознана' : 'не распознана') + ' · селектов prefix_id: ' + candidates.length + ' · редакторных селектов: ' + editForms.length + ' · варианты: ' + (names.join(' / ') || 'не найдены');
-    console.info('[Vladimir Console 4.6.1] Prefix diagnostic', { href: location.href, candidates, editForms, options: names });
+    console.info('[Vladimir Console 4.7.1] Prefix diagnostic', { href: location.href, candidates, editForms, options: names });
   });
   inPanel('va340-scan').addEventListener('click', scanSlaTopics);
   inPanel('va340-current').addEventListener('click', inspectCurrentThread);
