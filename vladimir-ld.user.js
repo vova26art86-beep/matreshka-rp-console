@@ -462,13 +462,36 @@
   }
   // Identify the currently signed-in XenForo member; role is derived from member ID, not game nickname.
   function detectForumUserId() {
-    const candidates = document.querySelectorAll('.p-navgroup-link--user[href], .p-navgroup-link--user a[href], .p-navgroup a[href*="members/"]');
+    // XenForo skins differ: profile links may be in the user nav, account menu,
+    // or rendered as a query-string route (index.php?members/name.123/).
+    const navRoots = [
+      ...document.querySelectorAll('.p-navgroup, .p-nav, .p-header, .js-accountMenu, .menu-content')
+    ];
+    const candidates = new Set([
+      ...document.querySelectorAll('.p-navgroup-link--user[href], .p-navgroup-link--user a[href], .p-navgroup a[href*="members/"], .js-accountMenu a[href*="members/"], .menu-content a[href*="members/"]')
+    ]);
+    for (const rootNode of navRoots) {
+      for (const node of rootNode.querySelectorAll('a[href], [data-user-id], [data-member-id]')) {
+        candidates.add(node);
+      }
+    }
     for (const node of candidates) {
-      const href = node.getAttribute('href') || '';
-      const dataId = node.getAttribute('data-user-id') || node.getAttribute('data-member-id');
+      const href = node.getAttribute?.('href') || '';
+      const dataId = node.getAttribute?.('data-user-id') || node.getAttribute?.('data-member-id');
       if (dataId && Number.isInteger(Number(dataId)) && Number(dataId) > 0) return String(dataId);
-      const match = href.match(/[.]([0-9]+)(?:$|[/?#])/);
-      if (match && href.includes('members/')) return match[1];
+      const match = href.match(/members\/[^/?#]*?\.([0-9]+)(?:[/?#]|$)/i)
+        || href.match(/[.]([0-9]+)(?:$|[/?#])/);
+      if (match && /members\//i.test(href)) return match[1];
+    }
+
+    // Fallback for this account when a forum theme hides the profile URL
+    // but shows the signed-in username in XenForo's user navigation.
+    const signedInNav = document.querySelector('.p-navgroup-link--user, .p-navgroup .username, .p-navgroup .p-navgroup-link');
+    const navText = (signedInNav?.textContent || '').replace(/^\s+|\s+$/g, '').toLowerCase();
+    const navHref = signedInNav?.getAttribute?.('href') || '';
+    if ((navText.includes('vladimir_sudarikov') || /members\/vladimir_sudarikov\.341059/i.test(navHref))
+      && (document.querySelector('.p-navgroup .p-navgroup-link--user, .p-navgroup-link--user') || /members\/vladimir_sudarikov\.341059/i.test(navHref))) {
+      return '341059';
     }
     return '';
   }
