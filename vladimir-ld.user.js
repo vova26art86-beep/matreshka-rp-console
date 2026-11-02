@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Vladimir | Leader & Deputy Center
 // @namespace    Vladimir_Sudarikov.MatreshkaTools
-// @version      2.3.3
+// @version      2.4.0
 // @description  Leader/deputy SLA tracking with manual per-topic review marks.
 // @match        https://forum.matrp.ru/*
 // @run-at       document-idle
@@ -85,6 +85,11 @@
       label: 'Заместитель',
       salt: 'C4FhMoTKQZaC09tisVDIcA==',
       hash: 'rPU8/sdmCJrvt9ME74210giYTthE7sLyvjBjkhCmoNU='
+    },
+    observer: {
+      label: 'Следящий',
+      salt: 'hWG9Ch9soJZ9J3TJzGVV6g==',
+      hash: 'eqZb9qhi9/L9iDdiE/cYFUALZzkOXiq1aYG+/+xWKzc='
     }
   };
   const PBKDF2_ITERATIONS = 310000;
@@ -260,7 +265,7 @@
 
   const root = document.createElement('div');
   root.id = APP_ID;
-  root.setAttribute('data-console-version', '2.3.3');
+  root.setAttribute('data-console-version', '2.4.0');
   root.innerHTML = `
     <section class="panel" aria-label="Leader and Deputy Center">
       <header class="head">
@@ -269,11 +274,11 @@
       </header>
       <div id="login" class="content">
         <div class="section">Выбор доступа</div>
-        <label class="field"><span>Рабочая роль</span><select id="role"><option value="leader">Лидер (ЛД)</option><option value="deputy">Заместитель</option></select></label>
+        <label class="field"><span>Рабочая роль</span><select id="role"><option value="leader">Лидер (ЛД)</option><option value="deputy">Заместитель</option><option value="observer">Следящий</option></select></label>
         <label class="field"><span>Пароль для выбранной роли</span><input id="password" type="password" autocomplete="current-password" placeholder="Введите пароль"></label>
         <button class="primary" data-act="login">Войти</button>
         <div class="error" id="login-error"></div>
-        <div class="hint">Если аккаунт форума есть в списке ЛД/заместителей, роль назначается автоматически по ID профиля. Для остальных аккаунтов используется отдельный вход; сохранённая роль привязана к конкретному аккаунту, а не ко всему браузеру. Данные входа не дают прав форума.</div>
+        <div class="hint">Роль ЛД/заместителя определяется по ID профиля форума. Для следящего предусмотрен отдельный пароль и режим просмотра без кнопок изменения тем и шаблонов ответов. Вход в консоль не выдаёт права на форуме.</div>
       </div>
       <div id="workspace" hidden>
         <nav class="tabs">
@@ -293,7 +298,7 @@
           <div class="muted" id="topic-toolbar-hint">Одно нажатие: консоль сама откроет меню инструментов, выберет команду и подтвердит только соответствующее действие.</div>
         </section>
         <main class="content" id="content"></main>
-        <footer class="footer"><span>VLADIMIR · LEADER & DEPUTY</span><span>v2.3.3 · AUTO ROLE</span></footer>
+        <footer class="footer"><span>VLADIMIR · LEADER & DEPUTY</span><span>v2.4.0 · OBSERVER ACCESS</span></footer>
       </div>
     </section>
     <button class="launch" data-act="open">♜ VLADIMIR · ЛД / ЗАМЫ</button>
@@ -422,6 +427,8 @@
     sessionStorage.removeItem(SESSION_KEY);
     const loginMode = AUTO_ROLE ? 'автовход по аккаунту форума' : (CURRENT_FORUM_USER_ID ? 'персональный доступ' : 'вход до конца вкладки');
     $('#role-label').textContent = `${ACCESS[role].label} · ${loginMode}`;
+    const topicToolbar = $('#topic-toolbar');
+    if (topicToolbar) topicToolbar.hidden = role === 'observer';
     $('#login').hidden = true;
     $('#workspace').hidden = false;
     renderTab(sessionStorage.getItem(LAST_TAB_KEY) || 'common');
@@ -810,6 +817,15 @@
 
   function renderTools() {
     const roleLabel = ACCESS[activeRole]?.label || '';
+    if (activeRole === 'observer') {
+      content.innerHTML = `
+        <div class="section">✦ РЕЖИМ СЛЕДЯЩЕГО</div>
+        <div class="hint">Доступен просмотр общих тем, отчётности и раздела Гетто, а также локальные отметки проверки тем.</div>
+        <div class="hint">Кнопки открытия, закрытия и закрепления тем отключены. Шаблоны ответов и вставка сообщений недоступны.</div>
+        <div class="hint">Отметки проверки сохраняются только в этом браузере и не являются общей отметкой для других пользователей.</div>
+      `;
+      return;
+    }
     content.innerHTML = `
       <div class="section">✦ ЦЕНТР ОТВЕТОВ · ${esc(roleLabel)}</div>
       <div class="hint" style="border-color:#9b78b566;background:linear-gradient(110deg,#8b5cf622,#22c1bf12,#f0ab4b12);color:#eee2ff">Выбери ситуацию — подготовлю аккуратный ответ с цветным заголовком и выделенным решением. Перед отправкой проверь формулировки.</div>
@@ -1072,7 +1088,10 @@
       if (tpl) await insertReply(buildTemplate(tpl));
       return;
     }
-    if (btn.dataset.topic) { await runTopicAction(btn.dataset.topic); }
+    if (btn.dataset.topic) {
+      if (activeRole === 'observer') { toast('В режиме следящего изменение тем недоступно.'); return; }
+      await runTopicAction(btn.dataset.topic);
+    }
   });
 
   $('#password').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); $('[data-act="login"]').dispatchEvent(new MouseEvent('click', {bubbles:true})); } });
