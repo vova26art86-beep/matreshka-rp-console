@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name         Vladimir Console — Matreshka RP (4.6.9 · LD SLA sync)
+// @name         Vladimir Console — Matreshka RP (4.7.0 · LD SLA sync)
 // @namespace    Vladimir_Sudarikov.AtelierConsole
-// @version      4.6.9
+// @version      4.7.0
 // @description  Персональная консоль с логикой контроля сроков, синхронизированной с ЛД
 // @match        https://forum.matrp.ru/*
 // @match        http://forum.matrp.ru/*
