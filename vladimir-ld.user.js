@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Vladimir | Leader & Deputy Center
 // @namespace    Vladimir_Sudarikov.MatreshkaTools
-// @version      2.5.1
+// @version      2.5.5
 // @description  Leader/deputy SLA tracking with manual per-topic review marks.
 // @match        https://forum.matrp.ru/*
 // @run-at       document-idle
@@ -548,7 +548,7 @@
     const loginMode = AUTO_ROLE ? 'автовход по аккаунту форума' : (CURRENT_FORUM_USER_ID ? 'персональный доступ' : 'вход до конца вкладки');
     $('#role-label').textContent = `${ACCESS[role].label} · ${loginMode}`;
     const topicToolbar = $('#topic-toolbar');
-    if (topicToolbar) topicToolbar.hidden = role === 'observer';
+    if (topicToolbar) topicToolbar.hidden = false;
     $('#login').hidden = true;
     $('#workspace').hidden = false;
     renderTab(sessionStorage.getItem(LAST_TAB_KEY) || 'common');
@@ -943,7 +943,11 @@
     const card = (name, desc) => `<a class="link" href="${linkFor(name)}" target="_blank" rel="noopener noreferrer"><span>${esc(name)}<small>${esc(desc)}</small></span><b>↗</b></a>`;
     content.innerHTML = `
       <div class="section">ОРГАНИЗАЦИИ · СЕРВЕР №30</div>
-      <div class="note">Выбери организацию — откроется поиск по форуму по её темам сервера №30.</div>
+      <div class="note">Выбери организацию и нажми «Перейти» — откроется поиск по её темам сервера №30.</div>
+      <div class="org-jump">
+        <label class="field"><span>Перейти к организации</span><select id="organization-select">${[...stateOrgs, ...opgOrgs].map(name => `<option value="${esc(name)}">${esc(name)}</option>`).join('')}</select></label>
+        <button class="action info" data-org-go>Перейти ↗</button>
+      </div>
       <div class="group"><div class="section">ГОСУДАРСТВЕННЫЕ ОРГАНИЗАЦИИ</div>
         ${stateOrgs.map(name => card(name, 'Найти раздел и темы организации на сервере №30')).join('')}
       </div>
@@ -956,22 +960,13 @@
 
   function renderTools() {
     const roleLabel = ACCESS[activeRole]?.label || '';
-    if (activeRole === 'observer') {
-      content.innerHTML = `
-        <div class="section">✦ РЕЖИМ СЛЕДЯЩЕГО</div>
-        <div class="hint">Доступен просмотр общих тем, отчётности и раздела Гетто, а также локальные отметки проверки тем.</div>
-        <div class="hint">Кнопки открытия, закрытия и закрепления тем отключены. Шаблоны ответов и вставка сообщений недоступны.</div>
-        <div class="hint">Отметки проверки сохраняются только в этом браузере и не являются общей отметкой для других пользователей.</div>
-      `;
-      return;
-    }
     content.innerHTML = `
       <div class="section">✦ ЦЕНТР ОТВЕТОВ · ${esc(roleLabel)}</div>
       <div class="hint" style="border-color:#9b78b566;background:linear-gradient(110deg,#8b5cf622,#22c1bf12,#f0ab4b12);color:#eee2ff">Выбери ситуацию — подготовлю аккуратный ответ с цветным заголовком и выделенным решением. Перед отправкой проверь формулировки.</div>
       <label class="field"><span>Имя адресата (необязательно)</span><input id="recipient" placeholder="Например, Leader_Name"></label>
       <label class="field"><span>Причина / пояснение (необязательно)</span><input id="reason" placeholder="Причина отказа или нужное уточнение"></label>
       <div class="action-grid">
-        ${ROLE_TEMPLATES[activeRole].map((t,i)=>`<button class="action ${t.kind}" data-template="${i}">${esc(t.title)}<div class="muted">Вставить в ответ</div></button>`).join('')}
+        ${(ROLE_TEMPLATES[activeRole] || ROLE_TEMPLATES.leader).map((t,i)=>`<button class="action ${t.kind}" data-template="${i}">${esc(t.title)}<div class="muted">Вставить в ответ</div></button>`).join('')}
       </div>
       <div class="hint">Шаблоны используют цветное BBCode-оформление XenForo. Кнопки только вставляют текст в редактор или копируют его: ничего не отправляется автоматически.</div>
       <div class="hint">Управление темой вынесено в отдельную панель над содержимым и доступно на всех вкладках.</div>
@@ -1223,12 +1218,17 @@
     }
     if (btn.dataset.tab) { renderTab(btn.dataset.tab); return; }
     if (btn.dataset.template !== undefined) {
-      const tpl = ROLE_TEMPLATES[activeRole]?.[Number(btn.dataset.template)];
+      const tpl = (ROLE_TEMPLATES[activeRole] || ROLE_TEMPLATES.leader)?.[Number(btn.dataset.template)];
       if (tpl) await insertReply(buildTemplate(tpl));
       return;
     }
+    if (btn.dataset.orgGo !== undefined) {
+      const select = $('#organization-select');
+      const name = select?.value;
+      if (name) window.open('https://forum.matrp.ru/index.php?search/&q=' + encodeURIComponent('Матрешка 30 ' + name) + '&t=post', '_blank', 'noopener');
+      return;
+    }
     if (btn.dataset.topic) {
-      if (activeRole === 'observer') { toast('В режиме следящего изменение тем недоступно.'); return; }
       await runTopicAction(btn.dataset.topic);
     }
   });
