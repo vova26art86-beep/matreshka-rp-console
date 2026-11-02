@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Vladimir | Leader & Deputy Center
 // @namespace    Vladimir_Sudarikov.MatreshkaTools
-// @version      2.6.7
+// @version      2.7.0
 // @description  Leader/deputy SLA tracking with startup diagnostics and resilient panel boot.
 // @match        *://forum.matrp.ru/*
 // @noframes
@@ -261,6 +261,27 @@
       #${APP_ID} .footer{flex-wrap:wrap;gap:5px 10px;padding:8px 10px;font-size:9px}
       #${APP_ID} .toast{top:max(58px,env(safe-area-inset-top));right:8px;max-width:calc(100vw - 16px);font-size:11px}
     }
+    /* Selectable panel appearances */
+    #${APP_ID}[data-theme="aurora"] .panel{border-color:#b99ad8;background:radial-gradient(ellipse at 5% 0%,#7955a955,transparent 43%),radial-gradient(ellipse at 100% 100%,#d06b8d30,transparent 40%),linear-gradient(155deg,#1b1728fa,#30213df7)}
+    #${APP_ID}[data-theme="aurora"] .head{background:linear-gradient(110deg,#37244f,#48294d,#28334b)}
+    #${APP_ID}[data-theme="obsidian"] .panel{border-color:#6b7280;background:radial-gradient(ellipse at 5% 0%,#4b556355,transparent 42%),linear-gradient(155deg,#101217fa,#242833f7)}
+    #${APP_ID}[data-theme="obsidian"] .head{background:linear-gradient(110deg,#1b202a,#292d38)}
+    #${APP_ID}[data-theme="pearl"] .panel{color:#29243a;background:radial-gradient(ellipse at 5% 0%,#d9c7ff88,transparent 44%),linear-gradient(155deg,#fbf9ff,#eeeaf7);border-color:#c4b5fd;box-shadow:0 18px 55px #1f123033}
+    #${APP_ID}[data-theme="pearl"] .head{background:linear-gradient(110deg,#f1eaff,#fff5fb);border-bottom-color:#d8c8f0}
+    #${APP_ID}[data-theme="pearl"] .title,#${APP_ID}[data-theme="pearl"] .section,#${APP_ID}[data-theme="pearl"] .field span{color:#33294a}
+    #${APP_ID}[data-theme="pearl"] .sub,#${APP_ID}[data-theme="pearl"] .muted,#${APP_ID}[data-theme="pearl"] .hint{color:#625873}
+    #${APP_ID}[data-theme="pearl"] .group,#${APP_ID}[data-theme="pearl"] .link,#${APP_ID}[data-theme="pearl"] .topic-toolbar{background:#ffffffb8;border-color:#d8d0e8;color:#322a42}
+    #${APP_ID}[data-theme="pearl"] input,#${APP_ID}[data-theme="pearl"] select{background:#fff;color:#29243a;border-color:#d2c9e2}
+    #${APP_ID}[data-theme="pearl"] .head-actions .icon{color:#3a2d50;border-color:#d6cce5;background:#fff8}
+    #${APP_ID}[data-theme="forest"] .panel{border-color:#4e8e78;background:radial-gradient(ellipse at 5% 0%,#26765b55,transparent 42%),linear-gradient(155deg,#0c1a17fa,#19352cf7)}
+    #${APP_ID}[data-theme="forest"] .head{background:linear-gradient(110deg,#12352b,#214c3d)}
+    #${APP_ID}[data-theme="ocean"] .panel{border-color:#5ba9dc;background:radial-gradient(ellipse at 5% 0%,#1c79ad66,transparent 42%),radial-gradient(ellipse at 100% 100%,#4657b833,transparent 40%),linear-gradient(155deg,#0b1728fa,#142f49f7)}
+    #${APP_ID}[data-theme="ocean"] .head{background:linear-gradient(110deg,#123a5b,#253d78)}
+    #${APP_ID} .appearance-card{padding:10px;border:1px solid #a78bfa55;border-radius:12px;background:linear-gradient(120deg,#8b5cf618,#22c1bf0c);margin-bottom:10px}
+    #${APP_ID} .appearance-card .field{margin:7px 0 0}
+    #${APP_ID} .appearance-card select{width:100%;min-height:40px;padding:8px 10px;border:1px solid #9b83bb88;border-radius:9px;background:#211b2c;color:inherit}
+    #${APP_ID}[data-theme="pearl"] .appearance-card select{background:#fff;color:#29243a}
+    #${APP_ID} .appearance-note{font-size:10px;line-height:1.4;opacity:.78;margin-top:5px}
     @media(max-width:360px){
       #${APP_ID} .topic-toolbar .action{font-size:10px}
       #${APP_ID} .head-actions{gap:2px}
@@ -297,7 +318,11 @@
 
   const root = document.createElement('div');
   root.id = APP_ID;
-  root.setAttribute('data-console-version', '2.6.7');
+  root.setAttribute('data-console-version', '2.7.0');
+  const LD_THEME_KEY = 'vldc_v2_appearance';
+  let ldTheme = 'aurora';
+  try { const savedTheme = localStorage.getItem(LD_THEME_KEY); if (['aurora','obsidian','pearl','forest','ocean'].includes(savedTheme)) ldTheme = savedTheme; } catch {}
+  root.dataset.theme = ldTheme;
   root.innerHTML = `
     <section class="panel" aria-label="Leader and Deputy Center">
       <header class="head">
@@ -1066,6 +1091,17 @@
     const roleLabel = ACCESS[activeRole]?.label || '';
     content.innerHTML = `
       <div class="section">✦ ЦЕНТР ОТВЕТОВ · ${esc(roleLabel)}</div>
+      <div class="appearance-card">
+        <div class="section">🎨 ОФОРМЛЕНИЕ ПАНЕЛИ</div>
+        <label class="field"><span>Выбери тему</span><select id="ld-appearance">
+          <option value="aurora" ${ldTheme === 'aurora' ? 'selected' : ''}>Aurora · фиолетовый градиент</option>
+          <option value="obsidian" ${ldTheme === 'obsidian' ? 'selected' : ''}>Obsidian · графит</option>
+          <option value="pearl" ${ldTheme === 'pearl' ? 'selected' : ''}>Pearl · светлая</option>
+          <option value="forest" ${ldTheme === 'forest' ? 'selected' : ''}>Forest · изумруд</option>
+          <option value="ocean" ${ldTheme === 'ocean' ? 'selected' : ''}>Ocean · сине-голубая</option>
+        </select></label>
+        <div class="appearance-note">Тема сохраняется на этом устройстве и применяется сразу.</div>
+      </div>
       <div class="hint" style="border-color:#9b78b566;background:linear-gradient(110deg,#8b5cf622,#22c1bf12,#f0ab4b12);color:#eee2ff">Выбери ситуацию — подготовлю аккуратный ответ с цветным заголовком и выделенным решением. Перед отправкой проверь формулировки.</div>
       <label class="field"><span>Имя адресата (необязательно)</span><input id="recipient" placeholder="Например, Leader_Name"></label>
       <label class="field"><span>Причина / пояснение (необязательно)</span><input id="reason" placeholder="Причина отказа или нужное уточнение"></label>
@@ -1296,6 +1332,16 @@
       actionButtons.forEach(button => { button.disabled = false; });
     }
   }
+
+  root.addEventListener('change', event => {
+    if (event.target?.id !== 'ld-appearance') return;
+    const value = event.target.value;
+    if (!['aurora','obsidian','pearl','forest','ocean'].includes(value)) return;
+    ldTheme = value;
+    root.dataset.theme = value;
+    try { localStorage.setItem(LD_THEME_KEY, value); } catch {}
+    toast('Оформление панели сохранено.');
+  });
 
   root.addEventListener('click', async event => {
     const btn = event.target.closest('button');
