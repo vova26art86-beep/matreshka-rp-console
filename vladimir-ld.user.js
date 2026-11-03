@@ -17,6 +17,7 @@
 
   // Quiet Mode: intentionally no fetch/XHR, polling, auto-refresh, cache purge, or scripted forum clicks.
   const APP_ID = 'vladimir-leader-deputy-center-v2';
+  const OWNER_LOG_TITLE = 'Ст. специалист по обработке логов';
   const PROFILE_DISPLAY_NAMES = Object.freeze({
     'lorenzo_refllonez': 'Lorenzo Крутой'
   });
@@ -496,7 +497,7 @@
     '682314': { role: 'deputy', label: 'ЗАМЕСТИТЕЛЬ · ОПГ «КАВКАЗСКОЕ»' },
     '233691': { role: 'deputy', label: 'ЗАМЕСТИТЕЛЬ · ОПГ «КАВКАЗСКОЕ»' },
     '829310': { role: 'deputy', label: 'ЗАМЕСТИТЕЛЬ · ОПГ «КАВКАЗСКОЕ»' },
-    '341059': { role: 'developer', label: 'ГЛАВНЫЙ АДМИНИСТРАТОР' }
+    '341059': { role: 'developer', label: OWNER_LOG_TITLE }
   });
 
   function decorateForumMemberBadges(scope = document) {
@@ -568,7 +569,7 @@
           const labelNode = document.createElement(label?.tag || 'strong');
           labelNode.className = 'va-owner-reference-label';
           safeClasses(labelNode, label);
-          labelNode.textContent = 'ГЛАВНЫЙ АДМИНИСТРАТОР';
+          labelNode.textContent = OWNER_LOG_TITLE;
           safeStyles(labelNode, label?.css);
           if (snapshot?.bannerTextPaint) {
             const paint = snapshot.bannerTextPaint;
