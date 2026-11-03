@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name         Vladimir Console — Matreshka RP (4.9.11)
+// @name         Vladimir Console — Matreshka RP (4.9.12)
 // @namespace    Vladimir_Sudarikov.AtelierConsole
-// @version      4.9.11
+// @version      4.9.12
 // @description  Персональная консоль: оформление ника как у Egor_Andyfy
 // @match        https://forum.matrp.ru/*
 // @match        http://forum.matrp.ru/*
@@ -694,7 +694,15 @@
   // determine the exact color. Do not sample a banner color or force an inline color.
   // Ник владельца не переоформляем: оставляем штатный стиль форума без изменений.
   function styleOwnerName(node) {
-    if (!node || (node.textContent || '').trim() !== OWNER) return;
+    if (!node) return;
+    const ownerLink = node.closest?.('a[href*="vladimir_sudarikov.341059"], a[href*="members/vladimir_sudarikov"]');
+    const isOwner = (node.textContent || '').trim() === OWNER
+      || Boolean(ownerLink)
+      || node.getAttribute?.('data-user-id') === '341059'
+      || Boolean(node.closest?.('[data-user-id="341059"]'));
+    if (!isOwner) return;
+    // Always restore the real forum nickname; older local cosmetic renames must not persist.
+    if ((node.textContent || '').trim() !== OWNER) node.textContent = OWNER;
 
     for (const cls of [...node.classList]) {
       if (cls.startsWith('username--') || cls.startsWith('va-owner-reference-')) {
