@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name         Vladimir Console — Matreshka RP (4.9.13)
+// @name         Vladimir Console — Matreshka RP (4.9.14)
 // @namespace    Vladimir_Sudarikov.AtelierConsole
-// @version      4.9.13
+// @version      4.9.14
 // @description  Персональная консоль: оформление ника как у Egor_Andyfy
 // @match        https://forum.matrp.ru/*
 // @match        http://forum.matrp.ru/*
@@ -78,12 +78,12 @@
   const style = document.createElement('style');
   style.id = IDS.style;
   style.textContent = `
-    #${IDS.launcher}{all:initial!important;position:fixed!important;top:auto!important;left:auto!important;right:16px!important;top:16px!important;bottom:auto!important;z-index:2147483647!important;display:flex!important;align-items:center!important;gap:9px!important;padding:10px 15px!important;border:1px solid #ffffff50!important;border-radius:14px!important;background:linear-gradient(115deg,#c4b5fd,#75e5cf)!important;color:#171322!important;font:900 12px/1.2 Arial,sans-serif!important;letter-spacing:.08em!important;box-shadow:0 10px 30px #0009!important;cursor:pointer!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important}
+    #${IDS.launcher}{all:initial!important;position:fixed!important;top:16px!important;left:auto!important;right:max(10px,env(safe-area-inset-right))!important;bottom:auto!important;z-index:2147483647!important;display:flex!important;align-items:center!important;gap:9px!important;min-height:44px!important;padding:10px 15px!important;border:1px solid #ffffff50!important;border-radius:14px!important;background:linear-gradient(115deg,#c4b5fd,#75e5cf)!important;color:#171322!important;font:900 12px/1.2 Arial,sans-serif!important;letter-spacing:.08em!important;box-shadow:0 10px 30px #0009!important;cursor:pointer!important;touch-action:manipulation!important;-webkit-tap-highlight-color:transparent!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important}
     #${IDS.launcher}:hover{filter:brightness(1.08)!important;transform:translateY(-1px)}
     #${IDS.launcher} .vmark{display:grid;place-items:center;width:25px;height:25px;border-radius:8px;background:#ffffff8a;font-size:12px}
     #${IDS.panel},#${IDS.auth}{font-family:Arial,sans-serif!important;box-sizing:border-box!important;color:#f4f1ff}
     #${IDS.panel} *,#${IDS.auth} *{box-sizing:border-box!important}
-    #${IDS.panel}{position:fixed!important;z-index:2147483646!important;top:${Math.max(8, Math.min(settings.top, window.innerHeight-100))}px!important;left:auto!important;right:${Math.max(8, Math.min(settings.right, window.innerWidth-80))}px!important;width:365px!important;max-width:calc(100vw - 20px)!important;max-height:calc(100vh - 100px)!important;overflow:hidden!important;border:1px solid #ffffff26!important;border-radius:18px!important;background:var(--va-bg,#11121b)!important;color:var(--va-text,#f4f1ff)!important;box-shadow:0 22px 70px #000a!important;display:none!important;font-size:13px!important;line-height:1.45!important}
+    #${IDS.panel}{position:fixed!important;z-index:2147483646!important;top:${Math.max(8, Math.min(settings.top, (window.visualViewport?.height || window.innerHeight)-120))}px!important;left:auto!important;right:${Math.max(8, Math.min(settings.right, (window.visualViewport?.width || window.innerWidth)-80))}px!important;width:365px!important;max-width:calc(100vw - 16px)!important;max-height:calc(100dvh - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom))!important;overflow:hidden!important;touch-action:pan-y!important;border:1px solid #ffffff26!important;border-radius:18px!important;background:var(--va-bg,#11121b)!important;color:var(--va-text,#f4f1ff)!important;box-shadow:0 22px 70px #000a!important;display:none!important;font-size:13px!important;line-height:1.45!important}
     #${IDS.panel}.va-show{display:block!important}
     #${IDS.panel}.va-pearl{--va-bg:#f5f3fa;--va-card:#fff;--va-card2:#ebe8f3;--va-text:#242033;--va-muted:#777187;--va-line:#24203324}
     #${IDS.panel}.va-obsidian{--va-bg:#11121b;--va-card:#191b28;--va-card2:#202334;--va-text:#f4f1ff;--va-muted:#9696ad;--va-line:#ffffff18}
@@ -188,8 +188,7 @@
     #${IDS.panel} .va340-sla-row-near{outline:1px solid #fbbf24aa!important;outline-offset:-1px!important}
     .va340-thread-overdue{display:inline-flex!important;margin:5px 0!important;padding:5px 9px!important;border:1px solid #fb7185!important;border-radius:8px!important;background:#7f1d1d!important;color:#fff!important;font:900 11px/1.3 Arial,sans-serif!important}
     .va340-thread-due{display:inline-flex!important;margin:5px 0!important;padding:5px 9px!important;border:1px solid #fbbf24!important;border-radius:8px!important;background:#78350f!important;color:#fff!important;font:800 11px/1.3 Arial,sans-serif!important}
-    @media(max-width:480px){#${IDS.panel} .va-reply-grid{grid-template-columns:1fr 1fr}} 
-    @media(max-width:480px){#${IDS.launcher}{left:auto!important;right:10px!important;top:10px!important;bottom:auto!important}#${IDS.panel}{left:auto!important;width:calc(100vw - 20px)!important;max-height:calc(100vh - 70px)!important}#${IDS.panel} .va-body{max-height:calc(100vh - 125px)!important}}
+    @media(max-width:600px){#${IDS.launcher}{left:auto!important;right:max(8px,env(safe-area-inset-right))!important;top:max(8px,env(safe-area-inset-top))!important;max-width:calc(100vw - 16px)!important;min-height:46px!important;touch-action:manipulation!important}#${IDS.panel}{left:auto!important;right:8px!important;top:max(8px,env(safe-area-inset-top))!important;width:calc(100vw - 16px)!important;max-height:calc(100dvh - 16px - env(safe-area-inset-top) - env(safe-area-inset-bottom))!important;border-radius:14px!important}#${IDS.panel} .va-body{max-height:calc(100dvh - 110px)!important;-webkit-overflow-scrolling:touch!important}#${IDS.auth}{overflow-y:auto!important;align-items:start!important;padding-top:max(18px,env(safe-area-inset-top))!important;padding-bottom:max(18px,env(safe-area-inset-bottom))!important}}
   `;
 
   const launcher = document.createElement('button');
@@ -2559,6 +2558,7 @@
   inPanel('va320-close').addEventListener('click', () => panel.classList.remove('va-show'));
   enablePanelDragging();
   window.addEventListener('resize', () => applyPanelPosition(true), { passive: true });
+  if (window.visualViewport) { window.visualViewport.addEventListener('resize', () => applyPanelPosition(false), { passive: true }); window.visualViewport.addEventListener('scroll', () => applyPanelPosition(false), { passive: true }); }
   window.addEventListener('pagehide', () => { saveSettings(); }, { capture: true });
   window.addEventListener('beforeunload', () => { saveSettings(); }, { capture: true });
   applyPanelPosition(false);
