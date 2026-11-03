@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Vladimir | Leader & Deputy Center
 // @namespace    Vladimir_Sudarikov.MatreshkaTools
-// @version      2.9.24
+// @version      2.9.25
 // @description  Leader/deputy SLA tracking with native forum username styling.
 // @match        *://forum.matrp.ru/*
 // @noframes
@@ -503,27 +503,11 @@
   // Copied from the admin console's styleOwnerName logic.
   function styleLdOwnerUsername(node, userId) {
     if (!node || userId !== '341059') return;
-    // Restore the original forum nickname on the owner's account, regardless of stale local aliases.
+    // Keep the original forum nickname and native forum styling; do not force the reference style.
     if ((node.textContent || '').trim() !== 'Vladimir_Sudarikov') node.textContent = 'Vladimir_Sudarikov';
-
-    for (const cls of [...node.classList]) {
-      if (cls.startsWith('username--') || cls.startsWith('va-owner-reference-')) {
-        node.classList.remove(cls);
-      }
-    }
-    node.classList.add('username--style8', 'username--moderator');
+    node.classList.remove('va-owner-reference-name');
     node.removeAttribute('data-va-owner-reference-name');
-
-    // Remove previous versions' inline paints so class style8 controls the real color.
-    for (const property of [
-      'color', 'background-color', 'background-image', 'background-size', 'background-position',
-      'background-repeat', 'background-clip', '-webkit-background-clip', '-webkit-text-fill-color',
-      'text-shadow', '-webkit-text-stroke', 'filter', 'opacity', 'font-family', 'font-size',
-      'font-weight', 'font-style', 'letter-spacing', 'text-transform', 'text-decoration',
-      'text-decoration-color'
-    ]) node.style.removeProperty(property);
   }
-
   function decorateForumMemberBadges(scope = document) {
     if (!scope?.querySelectorAll) return;
     const anchors = new Set();
