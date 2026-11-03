@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name         Vladimir Console — Matreshka RP (4.9.5)
+// @name         Vladimir Console — Matreshka RP (4.9.6)
 // @namespace    Vladimir_Sudarikov.AtelierConsole
-// @version      4.9.5
+// @version      4.9.6
 // @description  Персональная консоль: цвет ника точно берётся из текста плашки Egor_Andyfy; кнопка копирования образца убрана
 // @match        https://forum.matrp.ru/*
 // @match        http://forum.matrp.ru/*
@@ -71,6 +71,8 @@
     settings.cacheEnabled = true;
     settings.cacheTtlMinutes = 30;
   } catch { settings = { ...DEFAULTS }; }
+  // Recovery: never let a stale saved minimized flag start the console with an empty body.
+  settings.minimized = false;
   const saveSettings = () => safeSet(KEYS.settings, JSON.stringify(settings));
 
   const style = document.createElement('style');
