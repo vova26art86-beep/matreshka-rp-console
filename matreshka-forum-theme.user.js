@@ -1,12 +1,12 @@
 // ==UserScript==
 // @name         Matreshka RP — Forum Atelier Theme
 // @namespace    https://github.com/vova26art86-beep/matreshka-rp-console
-// @version      1.0.0
+// @version      1.0.1
 // @description  Единое современное оформление форума Matreshka RP с выбором темы
 // @author       Vladimir
 // @match        https://forum.matrp.ru/*
 // @match        http://forum.matrp.ru/*
-// @run-at       document-idle
+// @run-at       document-start
 // @grant        none
 // @downloadURL  https://raw.githubusercontent.com/vova26art86-beep/matreshka-rp-console/main/matreshka-forum-theme.user.js
 // @updateURL    https://raw.githubusercontent.com/vova26art86-beep/matreshka-rp-console/main/matreshka-forum-theme.user.js
@@ -79,7 +79,11 @@
     @media(max-width:650px){.p-header-inner{min-height:62px}#${WIDGET_ID}{right:10px;bottom:10px}#${WIDGET_ID} .ma-toggle{width:42px;height:42px}}
     @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}#${WIDGET_ID} *{transition:none!important}}
   `;
-  document.head.appendChild(css);
+  function attachStyle() {
+    const target = document.head || document.documentElement;
+    if (target && !document.getElementById(STYLE_ID)) target.appendChild(css);
+  }
+  attachStyle();
 
   function applyTheme(name) {
     const t = THEMES[name];
@@ -126,7 +130,11 @@
   }
 
   applyTheme(current);
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mountWidget, { once: true });
-  else mountWidget();
-  new MutationObserver(() => { if (!document.getElementById(WIDGET_ID)) mountWidget(); }).observe(document.documentElement, { childList: true, subtree: true });
+  const bootObserver = new MutationObserver(() => {
+    attachStyle();
+    if (document.body && !document.getElementById(WIDGET_ID)) mountWidget();
+    if (document.head && document.body && document.getElementById(STYLE_ID) && document.getElementById(WIDGET_ID)) bootObserver.disconnect();
+  });
+  bootObserver.observe(document.documentElement || document, { childList: true, subtree: true });
+  if (document.body) mountWidget();
 })();
