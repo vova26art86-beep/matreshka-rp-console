@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name         Vladimir Console — Matreshka RP (4.9.7)
+// @name         Vladimir Console — Matreshka RP (4.9.8)
 // @namespace    Vladimir_Sudarikov.AtelierConsole
-// @version      4.9.7
-// @description  Персональная консоль Matreshka RP; автоматическое изменение ника отключено
+// @version      4.9.8
+// @description  Персональная консоль: оформление ника как у Egor_Andyfy
 // @match        https://forum.matrp.ru/*
 // @match        http://forum.matrp.ru/*
 // @run-at       document-idle
@@ -694,7 +694,24 @@
   // determine the exact color. Do not sample a banner color or force an inline color.
   // Ник владельца не переоформляем: оставляем штатный стиль форума без изменений.
   function styleOwnerName(node) {
-    return;
+    if (!node || (node.textContent || '').trim() !== OWNER) return;
+
+    for (const cls of [...node.classList]) {
+      if (cls.startsWith('username--') || cls.startsWith('va-owner-reference-')) {
+        node.classList.remove(cls);
+      }
+    }
+    node.classList.add('username--style8', 'username--moderator');
+    node.removeAttribute('data-va-owner-reference-name');
+
+    // Remove previous versions' inline paints so class style8 controls the real color.
+    for (const property of [
+      'color', 'background-color', 'background-image', 'background-size', 'background-position',
+      'background-repeat', 'background-clip', '-webkit-background-clip', '-webkit-text-fill-color',
+      'text-shadow', '-webkit-text-stroke', 'filter', 'opacity', 'font-family', 'font-size',
+      'font-weight', 'font-style', 'letter-spacing', 'text-transform', 'text-decoration',
+      'text-decoration-color'
+    ]) node.style.removeProperty(property);
   }
 
   function collectOwnerBanners(container) {
