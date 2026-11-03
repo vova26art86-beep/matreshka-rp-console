@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name         Vladimir Console — Matreshka RP (4.7.8 · forum theme integrated)
+// @name         Vladimir Console — Matreshka RP (4.9.4)
 // @namespace    Vladimir_Sudarikov.AtelierConsole
-// @version      4.9.3
+// @version      4.9.4
 // @description  Персональная консоль: цвет ника точно берётся из текста плашки Egor_Andyfy; кнопка копирования образца убрана
 // @match        https://forum.matrp.ru/*
 // @match        http://forum.matrp.ru/*
