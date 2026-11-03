@@ -502,7 +502,7 @@
 
   // Apply the same forum username style to Vladimir in the LD/deputy script.
   function styleLdOwnerUsername(anchor, userId) {
-    if (userId !== '341059' || (anchor.textContent || '').replace(/\\s+/g, ' ').trim().toLowerCase() !== 'vladimir_sudarikov') return;
+    if (userId !== '341059' || (anchor.textContent || '').replace(/\s+/g, ' ').trim().toLowerCase() !== 'vladimir_sudarikov') return;
     for (const cls of [...anchor.classList]) {
       if (cls.startsWith('username--')) anchor.classList.remove(cls);
     }
