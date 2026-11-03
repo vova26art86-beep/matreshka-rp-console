@@ -8,7 +8,7 @@
 // @run-at       document-idle
 // @grant        none
 // @downloadURL  https://raw.githubusercontent.com/vova26art86-beep/matreshka-rp-console/main/vladimir-admin.user.js?v=4.8.9
-// @updateURL    https://raw.githubusercontent.com/vova26art86-beep/matreshka-rp-console/main/vladimir-admin.user.js
+// @updateURL    https://raw.githubusercontent.com/vova26art86-beep/matreshka-rp-console/main/vladimir-admin.user.js?v=4.8.9
 // ==/UserScript==
 
 (() => {
