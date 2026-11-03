@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Vladimir | Leader & Deputy Center
 // @namespace    Vladimir_Sudarikov.MatreshkaTools
-// @version      2.8.3
+// @version      2.8.4
 // @description  Leader/deputy SLA tracking with startup diagnostics and resilient panel boot.
 // @match        *://forum.matrp.ru/*
 // @noframes
@@ -18,7 +18,7 @@
   // Quiet Mode: intentionally no fetch/XHR, polling, auto-refresh, cache purge, or scripted forum clicks.
   const APP_ID = 'vladimir-leader-deputy-center-v2';
   const PROFILE_DISPLAY_NAMES = Object.freeze({
-    'vladimir_sudarikov': 'сын бога всея руси',
+    'vladimir_sudarikov': 'бог всея руси',
     'lorenzo_refllonez': 'сын бога всея руси',
     'sofi_daijazu': 'мама сына всея руси'
   });
