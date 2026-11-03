@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Vladimir | Leader & Deputy Center
 // @namespace    Vladimir_Sudarikov.MatreshkaTools
-// @version      2.8.6
+// @version      2.8.7
 // @description  Leader/deputy SLA tracking with startup diagnostics and resilient panel boot.
 // @match        *://forum.matrp.ru/*
 // @noframes
@@ -18,9 +18,7 @@
   // Quiet Mode: intentionally no fetch/XHR, polling, auto-refresh, cache purge, or scripted forum clicks.
   const APP_ID = 'vladimir-leader-deputy-center-v2';
   const PROFILE_DISPLAY_NAMES = Object.freeze({
-    'vladimir_sudarikov': 'бог всея руси',
-    'lorenzo_refllonez': 'сын бога всея руси',
-    'sofi_daijazu': 'мама сына всея руси'
+    'lorenzo_refllonez': 'Lorenzo Крутой'
   });
   const getLocalProfileDisplayName = name => PROFILE_DISPLAY_NAMES[name.trim().replace(/^@/, '').toLocaleLowerCase()] || '';
   const SESSION_KEY = 'vldc_v2_authenticated_role'; // legacy session key
@@ -457,7 +455,7 @@
 
   // Compact role badges above forum usernames; metadata is local presentation only.
   const ACCOUNT_BADGE_INFO = Object.freeze({
-    '337247': { role: 'developer', label: 'Разработчик' },
+    '337247': { role: 'developer', label: 'ЛИДЕР' },
     '61846': { role: 'leader', label: 'ЛИДЕР · АРМИЯ' },
     '665168': { role: 'leader', label: 'ЛИДЕР · БОЛЬНИЦА' },
     '395998': { role: 'leader', label: 'ЛИДЕР · ГТРК «ТЕМП»' },
