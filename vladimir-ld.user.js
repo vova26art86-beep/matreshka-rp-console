@@ -497,7 +497,7 @@
     '682314': { role: 'deputy', label: 'ЗАМЕСТИТЕЛЬ · ОПГ «КАВКАЗСКОЕ»' },
     '233691': { role: 'deputy', label: 'ЗАМЕСТИТЕЛЬ · ОПГ «КАВКАЗСКОЕ»' },
     '829310': { role: 'deputy', label: 'ЗАМЕСТИТЕЛЬ · ОПГ «КАВКАЗСКОЕ»' },
-    '341059': { role: 'developer', label: OWNER_LOG_TITLE }
+    '341059': { role: 'developer', label: 'ГА' }
   });
 
   // Copied from the admin console's styleOwnerName logic.
@@ -592,7 +592,7 @@
           const labelNode = document.createElement(label?.tag || 'strong');
           labelNode.className = 'va-owner-reference-label';
           safeClasses(labelNode, label);
-          labelNode.textContent = OWNER_LOG_TITLE;
+          labelNode.textContent = 'ГА';
           safeStyles(labelNode, label?.css);
           if (snapshot?.bannerTextPaint) {
             const paint = snapshot.bannerTextPaint;
