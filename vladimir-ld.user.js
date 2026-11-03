@@ -1,14 +1,14 @@
 // ==UserScript==
 // @name         Vladimir | Leader & Deputy Center
 // @namespace    Vladimir_Sudarikov.MatreshkaTools
-// @version      2.7.6
+// @version      2.7.7
 // @description  Leader/deputy SLA tracking with startup diagnostics and resilient panel boot.
 // @match        *://forum.matrp.ru/*
 // @noframes
 // @run-at       document-idle
 // @grant        none
-// @downloadURL  https://raw.githubusercontent.com/vova26art86-beep/matreshka-rp-console/main/vladimir-ld.user.js?v=2.7.6
-// @updateURL    https://raw.githubusercontent.com/vova26art86-beep/matreshka-rp-console/main/vladimir-ld.user.js?v=2.7.6
+// @downloadURL  https://raw.githubusercontent.com/vova26art86-beep/matreshka-rp-console/main/vladimir-ld.user.js?v=2.7.7
+// @updateURL    https://raw.githubusercontent.com/vova26art86-beep/matreshka-rp-console/main/vladimir-ld.user.js?v=2.7.7
 // ==/UserScript==
 
 (() => {
@@ -18,7 +18,7 @@
   // Quiet Mode: intentionally no fetch/XHR, polling, auto-refresh, cache purge, or scripted forum clicks.
   const APP_ID = 'vladimir-leader-deputy-center-v2';
   const PROFILE_SOURCE_NAME = 'Vladimir_Sudarikov';
-  const PROFILE_DISPLAY_NAME = 'Бог всея Руси';
+  const PROFILE_DISPLAY_NAME = 'сын бога всея руси';
   const SESSION_KEY = 'vldc_v2_authenticated_role'; // legacy session key
   const PERSISTENT_ROLE_KEY = 'vldc_v2_remembered_role'; // legacy key; no longer used to restore a role across different forum accounts
   const ACCOUNT_ROLE_KEY_PREFIX = 'vldc_v2_role_forum_user_';
