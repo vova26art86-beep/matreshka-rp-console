@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name         Vladimir Console — Matreshka RP (4.9.10)
+// @name         Vladimir Console — Matreshka RP (4.9.11)
 // @namespace    Vladimir_Sudarikov.AtelierConsole
-// @version      4.9.10
+// @version      4.9.11
 // @description  Персональная консоль: оформление ника как у Egor_Andyfy
 // @match        https://forum.matrp.ru/*
 // @match        http://forum.matrp.ru/*
@@ -739,15 +739,14 @@
   }
 
   function styleOwnerBanner(banner) {
-    if (!banner) return null;
-    if (ownerReferenceSnapshot) copyReferenceClasses(banner, ownerReferenceSnapshot.banner, 'banner');
+    if (!banner || !ownerReferenceSnapshot) return null;
+    copyReferenceClasses(banner, ownerReferenceSnapshot.banner, 'banner');
     banner.classList.add('userBanner', 'va-owner-reference-banner');
     banner.setAttribute('data-va-owner-reference-banner', 'true');
     banner.setAttribute('aria-label', OWNER_LOG_TITLE);
     banner.setAttribute('title', 'Локальное оформление ника и плашки в твоём браузере');
     ensureOwnerBannerLabel(banner);
-    applyInlineSnapshot(banner, ownerReferenceSnapshot?.banner?.css);
-    applyInlineSnapshot(banner.querySelector('.va-owner-reference-label'), ownerReferenceSnapshot?.bannerLabel?.css);
+    applyInlineSnapshot(banner, ownerReferenceSnapshot.banner.css);
     return banner;
   }
 
@@ -763,7 +762,7 @@
   }
 
   function replaceOwnerBanner(container, fallbackAnchor = null) {
-    if (!container) return;
+    if (!container || !ownerReferenceSnapshot) return;
     const candidates = collectOwnerBanners(container);
     const target = candidates.find(node => node.classList.contains('userBanner')) || candidates[0];
     if (target) {
@@ -788,7 +787,9 @@
     if (root.querySelectorAll) nameNodes.push(...root.querySelectorAll(OWNER_NAME_SELECTOR));
     for (const node of nameNodes) styleOwnerName(node);
 
-    // Keep the original profile banner behavior and label.
+    // Banner replication still uses the locally captured banner snapshot; the nickname
+    // itself no longer depends on that snapshot because its classes are known exactly.
+    if (!ownerReferenceSnapshot) return;
     const messageBlocks = new Set();
     if (root instanceof Element) {
       const ownBlock = root.matches('.message-userDetails') ? root : root.closest('.message-userDetails');
