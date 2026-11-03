@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Vladimir Console — Matreshka RP (4.7.8 · forum theme integrated)
 // @namespace    Vladimir_Sudarikov.AtelierConsole
-// @version      4.8.0
+// @version      4.8.1
 // @description  Персональная консоль: цвет ника точно берётся из текста плашки Egor_Andyfy; кнопка копирования образца убрана
 // @match        https://forum.matrp.ru/*
 // @match        http://forum.matrp.ru/*
@@ -364,11 +364,10 @@
   }
 
   function showPanel() {
-    panel.classList.add('va-show');
-    // Открываем панель над нижней кнопкой запуска, чтобы она поднималась снизу и не уходила за экран.
-    const panelHeight = panel.getBoundingClientRect().height || Math.min(520, window.innerHeight - 80);
-    settings.top = Math.max(8, window.innerHeight - panelHeight - 66);
+    // Сначала восстановить сохранённые координаты, затем показать панель.
+    // Не вычисляем top от нижней кнопки при каждом открытии: это затирало пользовательское положение.
     applyPanelPosition(false);
+    panel.classList.add('va-show');
     const body = inPanel('va320-body');
     body.hidden = !!settings.minimized;
     inPanel('va320-min').textContent = settings.minimized ? '+' : '−';
