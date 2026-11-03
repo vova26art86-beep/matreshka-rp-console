@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Vladimir | Leader & Deputy Center
 // @namespace    Vladimir_Sudarikov.MatreshkaTools
-// @version      2.9.5
-// @description  Leader/deputy SLA tracking with startup diagnostics and resilient panel boot.
+// @version      2.9.6
+// @description  Leader/deputy SLA tracking with admin-console owner badge styling.
 // @match        *://forum.matrp.ru/*
 // @noframes
 // @run-at       document-idle
@@ -177,7 +177,7 @@
     .vldc-profile-display-name { color:#f472b6 !important; font-weight:800 !important; letter-spacing:.1px !important; text-shadow:0 0 10px #ec489944 !important; }
     .vldc-role-badge { display:inline-block; vertical-align:middle; width:max-content; max-width:min(180px,100%); margin:0 0 0 5px; padding:1px 6px; border:1px solid; border-radius:999px; font:800 8px/1.2 Inter,Segoe UI,Arial,sans-serif; letter-spacing:.35px; text-transform:uppercase; white-space:nowrap; text-align:center; box-shadow:0 1px 4px #0002; pointer-events:none; }
     .vldc-role-badge--leader { color:#ffe8b8; border-color:#d6ad5d99; background:linear-gradient(110deg,#9a6a25e8,#68431fe8); }
-    .vldc-role-badge--developer { color:#ffe8b8; border-color:#d6ad5d99; background:linear-gradient(110deg,#9a6a25e8,#68431fe8); box-shadow:0 1px 4px #0002; }
+    .vldc-role-badge--developer { color:inherit; border-color:currentColor; background:transparent; box-shadow:none; }
     .vldc-role-badge--deputy { color:#dbeafe; border-color:#77a8e899; background:linear-gradient(110deg,#315a91ed,#483d82ed); }
     .vldc-role-badge--observer { color:#ffe0f2; border-color:#df83b899; background:linear-gradient(110deg,#8e356ced,#632f82ed); }
     #${APP_ID} { --vldc-top:12px; --vldc-left:calc(100vw - 426px); --vldc-width:410px; --vldc-height:760px; position:fixed; top:var(--vldc-top); left:var(--vldc-left); right:auto; bottom:auto; z-index:2147483000; color:#f8f3ff; font:13px/1.45 Inter,Segoe UI,Arial,sans-serif; -webkit-font-smoothing:antialiased; }
@@ -520,14 +520,52 @@
         badge.remove();
         badge = next;
       }
+      const isMainAdmin = userId === '341059' || userId === 'lorenzo_refllonez';
       const badgeItems = [info, ...(Array.isArray(info.extra) ? info.extra : [])];
       let insertAfter = anchor;
       for (const item of badgeItems) {
-        const itemBadge = document.createElement('span');
-        itemBadge.className = 'vldc-role-badge vldc-role-badge--' + item.role;
+        const itemBadge = document.createElement(isMainAdmin ? 'span' : 'span');
+        itemBadge.className = isMainAdmin ? 'vldc-role-badge vldc-role-badge--developer va-owner-reference-banner' : 'vldc-role-badge vldc-role-badge--' + item.role;
         itemBadge.dataset.userId = userId;
         itemBadge.textContent = item.label;
-        itemBadge.title = item.label + ' · форумный аккаунт: ' + username;
+        itemBadge.title = item.label + ' · локальное оформление из админ-панели';
+        if (isMainAdmin) {
+          let snapshot = null;
+          try { snapshot = JSON.parse(localStorage.getItem('vladimir_atelier_egor_reference_style_v3') || 'null'); } catch {}
+          const banner = snapshot?.version === 3 ? snapshot.banner : null;
+          const label = snapshot?.version === 3 ? snapshot.bannerLabel : null;
+          const safeStyles = (element, styles) => {
+            if (!element || !styles || typeof styles !== 'object') return;
+            for (const [property, value] of Object.entries(styles)) {
+              if (/^[a-z-]+$/i.test(property) && typeof value === 'string' && value && !/[{};]/.test(value)) {
+                try { element.style.setProperty(property, value, 'important'); } catch {}
+              }
+            }
+          };
+          const safeClasses = (element, pack) => {
+            for (const name of (Array.isArray(pack?.classes) ? pack.classes : [])) {
+              if (/^[a-zA-Z_][\\w-]{0,100}$/.test(name)) element.classList.add(name);
+            }
+          };
+          itemBadge.classList.add('userBanner', 'va-owner-reference-banner');
+          safeClasses(itemBadge, banner);
+          safeStyles(itemBadge, banner?.css);
+          if (banner?.inline) {
+            // Inline source styles are intentionally not copied; computed styles are safer and match the admin console.
+          }
+          itemBadge.style.setProperty('display', 'inline-block', 'important');
+          itemBadge.style.setProperty('vertical-align', 'middle', 'important');
+          itemBadge.style.setProperty('margin', '1px 0 1px 5px', 'important');
+          itemBadge.style.setProperty('max-width', 'min(240px,100%)', 'important');
+          itemBadge.style.setProperty('white-space', 'normal', 'important');
+          const labelNode = document.createElement(label?.tag || 'strong');
+          labelNode.className = 'va-owner-reference-label';
+          safeClasses(labelNode, label);
+          labelNode.textContent = 'ГЛАВНЫЙ АДМИНИСТРАТОР';
+          safeStyles(labelNode, label?.css);
+          itemBadge.replaceChildren(labelNode);
+          itemBadge.dataset.vldcMainAdmin = 'true';
+        }
         insertAfter.insertAdjacentElement('afterend', itemBadge);
         insertAfter = itemBadge;
       }
