@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name         Vladimir Console — Matreshka RP 4.8.3
+// @name         Vladimir Console — Matreshka RP 4.8.4
 // @namespace    Vladimir_Sudarikov.AtelierConsole
-// @version      4.8.3
+// @version      4.8.4
 // @description  Персональная консоль: цвет ника точно берётся из текста плашки Egor_Andyfy; кнопка копирования образца убрана
 // @match        https://forum.matrp.ru/*
 // @match        http://forum.matrp.ru/*
@@ -2419,7 +2419,8 @@
   inPanel('va320-close').addEventListener('click', () => panel.classList.remove('va-show'));
   enablePanelDragging();
   window.addEventListener('resize', () => applyPanelPosition(true), { passive: true });
-  window.addEventListener('pagehide', () => saveSettings(), { capture: true });
+  window.addEventListener('pagehide', () => { saveSettings(); }, { capture: true });
+  window.addEventListener('beforeunload', () => { saveSettings(); }, { capture: true });
   applyPanelPosition(false);
   launcher.addEventListener('click', launch);
   document.addEventListener('keydown', e => {
@@ -2605,7 +2606,11 @@
     @media(max-width:650px){.p-header-inner{min-height:62px}#${WIDGET_ID}{right:10px;bottom:10px}#${WIDGET_ID} .ma-toggle{width:42px;height:42px}}
     @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}#${WIDGET_ID} *{transition:none!important}}
   `;
-  document.head.appendChild(css);
+  function attachStyle() {
+    const target = document.head || document.documentElement;
+    if (target && !document.getElementById(STYLE_ID)) target.appendChild(css);
+  }
+  attachStyle();
 
   function applyTheme(name) {
     const t = THEMES[name];
@@ -2654,5 +2659,10 @@
   applyTheme(current);
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mountWidget, { once: true });
   else mountWidget();
-  new MutationObserver(() => { if (!document.getElementById(WIDGET_ID)) mountWidget(); }).observe(document.documentElement, { childList: true, subtree: true });
+  const themeRepairObserver = new MutationObserver(() => {
+    attachStyle();
+    if (document.body && !document.getElementById(WIDGET_ID)) mountWidget();
+    if (document.getElementById(STYLE_ID) && document.getElementById(WIDGET_ID)) themeRepairObserver.disconnect();
+  });
+  themeRepairObserver.observe(document.documentElement || document, { childList: true, subtree: true });
 })();
