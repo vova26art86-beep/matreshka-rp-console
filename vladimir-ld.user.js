@@ -1,13 +1,13 @@
 // ==UserScript==
 // @name         Vladimir | Leader & Deputy Center
 // @namespace    Vladimir_Sudarikov.MatreshkaTools
-// @version      2.9.11
+// @version      2.9.12
 // @description  Leader/deputy SLA tracking with admin-console owner badge styling.
 // @match        *://forum.matrp.ru/*
 // @noframes
 // @run-at       document-idle
 // @grant        none
-// @downloadURL  https://raw.githubusercontent.com/vova26art86-beep/matreshka-rp-console/main/vladimir-ld.user.js?v=2.9.11
+// @downloadURL  https://raw.githubusercontent.com/vova26art86-beep/matreshka-rp-console/main/vladimir-ld.user.js?v=2.9.12
 // @updateURL    https://raw.githubusercontent.com/vova26art86-beep/matreshka-rp-console/main/vladimir-ld.user.js?v=2.9.11
 // ==/UserScript==
 
@@ -500,6 +500,18 @@
     '341059': { role: 'developer', label: OWNER_LOG_TITLE }
   });
 
+  // Apply the same forum username style to Vladimir in the LD/deputy script.
+  function styleLdOwnerUsername(anchor, userId) {
+    if (userId !== '341059' || (anchor.textContent || '').replace(/\\s+/g, ' ').trim().toLowerCase() !== 'vladimir_sudarikov') return;
+    for (const cls of [...anchor.classList]) {
+      if (cls.startsWith('username--')) anchor.classList.remove(cls);
+    }
+    anchor.classList.add('username--style8', 'username--moderator');
+    for (const property of ['color','background-color','background-image','background-clip','-webkit-background-clip','-webkit-text-fill-color','text-shadow','-webkit-text-stroke','filter','opacity','font-family','font-size','font-weight','font-style','letter-spacing','text-transform','text-decoration','text-decoration-color']) {
+      anchor.style.removeProperty(property);
+    }
+  }
+
   function decorateForumMemberBadges(scope = document) {
     if (!scope?.querySelectorAll) return;
     // Only actual username links, not every repeated profile link/avatar/signature.
@@ -516,6 +528,7 @@
       const userId = match?.[1] || (slug === 'lorenzo_refllonez' ? 'lorenzo_refllonez' : '');
       const info = userId === 'lorenzo_refllonez' ? { role: 'developer', label: 'ГЛАВНЫЙ АДМИНИСТРАТОР' } : ACCOUNT_BADGE_INFO[userId];
       if (!userId || !info) continue;
+      styleLdOwnerUsername(anchor, userId);
       const username = (anchor.textContent || '').replace(/\s+/g, ' ').trim();
       if (!username || username.length > 70) continue;
 
