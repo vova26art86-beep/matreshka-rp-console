@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Vladimir | Leader & Deputy Center
 // @namespace    Vladimir_Sudarikov.MatreshkaTools
-// @version      2.9.6
+// @version      2.9.7
 // @description  Leader/deputy SLA tracking with admin-console owner badge styling.
 // @match        *://forum.matrp.ru/*
 // @noframes
@@ -544,15 +544,17 @@
           };
           const safeClasses = (element, pack) => {
             for (const name of (Array.isArray(pack?.classes) ? pack.classes : [])) {
-              if (/^[a-zA-Z_][\\w-]{0,100}$/.test(name)) element.classList.add(name);
+              if (/^[a-zA-Z_][\\w-]{0,100}$/.test(name) && name !== 'userBanner') element.classList.add(name);
             }
           };
           itemBadge.classList.add('userBanner', 'va-owner-reference-banner');
           safeClasses(itemBadge, banner);
           safeStyles(itemBadge, banner?.css);
-          if (banner?.inline) {
-            // Inline source styles are intentionally not copied; computed styles are safer and match the admin console.
+          // Remove the generic LD badge look; the reference snapshot is the source of truth.
+          for (const property of ['padding','border','border-radius','font','font-family','font-size','font-weight','letter-spacing','text-transform','text-align','box-shadow','color','background','background-color','background-image','line-height']) {
+            itemBadge.style.removeProperty(property);
           }
+          safeStyles(itemBadge, banner?.css);
           itemBadge.style.setProperty('display', 'inline-block', 'important');
           itemBadge.style.setProperty('vertical-align', 'middle', 'important');
           itemBadge.style.setProperty('margin', '1px 0 1px 5px', 'important');
@@ -563,8 +565,34 @@
           safeClasses(labelNode, label);
           labelNode.textContent = 'ГЛАВНЫЙ АДМИНИСТРАТОР';
           safeStyles(labelNode, label?.css);
+          if (snapshot?.bannerTextPaint) {
+            const paint = snapshot.bannerTextPaint;
+            for (const [prop, value] of Object.entries({
+              color: paint.color, '-webkit-text-fill-color': paint.textFill,
+              'background-image': paint.backgroundImage, 'background-clip': paint.backgroundClip,
+              '-webkit-background-clip': paint.backgroundClip, 'text-shadow': paint.textShadow,
+              '-webkit-text-stroke': paint.webkitTextStroke
+            })) if (typeof value === 'string' && value && !/[{};]/.test(value)) labelNode.style.setProperty(prop, value, 'important');
+          }
           itemBadge.replaceChildren(labelNode);
-          itemBadge.dataset.vldcMainAdmin = 'true';
+          // Replicate the admin panel's saved ::before/::after styles on the forum badge.
+          const pseudoId = 'vldc-owner-reference-pseudo-style';
+          let pseudoStyle = document.getElementById(pseudoId);
+          if (!pseudoStyle) {
+            pseudoStyle = document.createElement('style');
+            pseudoStyle.id = pseudoId;
+            (document.head || document.documentElement).appendChild(pseudoStyle);
+          }
+          const declarations = pack => Object.entries(pack || {})
+            .filter(([property, value]) => /^[a-z-]+$/i.test(property) && typeof value === 'string' && value && !/[{};]/.test(value))
+            .map(([property, value]) => property + ':' + value + '!important;').join('');
+          pseudoStyle.textContent = [
+            '.va-owner-reference-banner::before{' + declarations(banner?.before) + '}',
+            '.va-owner-reference-banner::after{' + declarations(banner?.after) + '}',
+            '.va-owner-reference-label::before{' + declarations(label?.before) + '}',
+            '.va-owner-reference-label::after{' + declarations(label?.after) + '}'
+          ].join('\\n');
+          itemBadge.dataset.vldcMainAdmin = snapshot?.version === 3 && banner?.css ? 'true' : 'snapshot-missing';
         }
         insertAfter.insertAdjacentElement('afterend', itemBadge);
         insertAfter = itemBadge;
