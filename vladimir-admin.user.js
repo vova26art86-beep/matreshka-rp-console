@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Vladimir Console — Matreshka RP (4.7.8 · forum theme integrated)
 // @namespace    Vladimir_Sudarikov.AtelierConsole
-// @version      4.9.0
+// @version      4.9.1
 // @description  Персональная консоль: цвет ника точно берётся из текста плашки Egor_Andyfy; кнопка копирования образца убрана
 // @match        https://forum.matrp.ru/*
 // @match        http://forum.matrp.ru/*
@@ -205,6 +205,8 @@
           <a class="va-btn va-link" href="https://forum.matrp.ru/index.php?members/vladimir_sudarikov.341059/" target="_blank" rel="noopener">◎ Мой профиль</a>
           <a class="va-btn va-link" href="${LINKS.myFollowing}" target="_blank" rel="noopener">◎ Мои подписки</a>
           <a class="va-btn va-link" href="https://forum.matrp.ru/index.php?threads/matreska-30-ezednevnye-otcety-liderov-gosudarstvennyh-struktur.1971211/unread" target="_blank" rel="noopener">▤ Ежедневные отчёты</a>
+          <a class="va-btn va-link" href="https://forum.matrp.ru/index.php?threads/matreska-30-ezenedelnye-otcety-liderov.2369132/" target="_blank" rel="noopener noreferrer">▤ Еженедельные отчёты Гетто</a>
+          <a class="va-btn va-link" href="https://forum.matrp.ru/index.php?threads/matreska-30-zamorozki-u-opg-snatie-moroza.2682004/unread" target="_blank" rel="noopener noreferrer">❄ Мороз / снятие мороза</a>
           <a class="va-btn va-link" href="https://forum.matrp.ru/index.php?threads/pravila-podaci-zaloby.66297/" target="_blank" rel="noopener">⚖ Жалобы на игроков</a>
           <a class="va-btn va-link" href="https://forum.matrp.ru/index.php?threads/pravila-podaci-zaloby-na-liderov.3333380/" target="_blank" rel="noopener">♜ Жалобы на лидеров</a>
         </div>
@@ -221,6 +223,16 @@
           <a class="va-btn va-link" href="https://forum.matrp.ru/index.php?threads/matreska-30-dejstvuusie-lidery-servera.1961070/" target="_blank" rel="noopener noreferrer">♜ Действующие лидеры</a>
           <a class="va-btn va-link" href="https://forum.matrp.ru/index.php?threads/matreska-30-zaavlenie-na-neaktiv-dla-liderov.1970623/" target="_blank" rel="noopener noreferrer">◌ Неактивы лидеров</a>
         </div>
+      </section>
+      <section>
+        <div class="va-label">Управление текущей темой <span class="va-chip">1 CLICK</span></div>
+        <div class="va-grid">
+          <button class="va-btn" type="button" data-va-thread-action="open">● Открыть тему<span class="va-caption">Штатная команда форума</span></button>
+          <button class="va-btn" type="button" data-va-thread-action="close">■ Закрыть тему<span class="va-caption">Штатная команда форума</span></button>
+          <button class="va-btn" type="button" data-va-thread-action="pin">◆ Закрепить тему<span class="va-caption">Штатная команда форума</span></button>
+          <button class="va-btn" type="button" data-va-thread-action="unpin">◇ Открепить тему<span class="va-caption">Штатная команда форума</span></button>
+        </div>
+        <div class="va-status" id="va340-thread-action-status">Открой конкретную тему. Действия используют штатное меню XenForo и требуют соответствующих прав.</div>
       </section>
       <section>
         <div class="va-label">Смена префикса · все варианты <span class="va-chip">1 CLICK</span></div>
@@ -1791,12 +1803,17 @@
   };
   const THREAD_ACTION_TEXT = {
     close: /(?:закрыть|закрыть\s+тему|закрыть\s+обсуждение|заблокировать\s+тему|lock\s+thread|close\s+thread|\block\b)/i,
-    open: /(?:открыть\s+тему|открыть\s+обсуждение|разблокировать\s+тему|unlock\s+thread|open\s+thread|\bunlock\b)/i
+    open: /(?:открыть\s+тему|открыть\s+обсуждение|разблокировать\s+тему|unlock\s+thread|open\s+thread|\bunlock\b)/i,
+    pin: /(?:закрепить|прикрепить)\s*(?:тему|обсуждение)?|stick(?:\s+thread)?|pin(?:\s+thread)?/i,
+    unpin: /(?:открепить|снять)\s*(?:закрепление|закреп|прикрепление|тему)?|unstick(?:\s+thread)?|unpin(?:\s+thread)?/i
   };
   const THREAD_ACTION_ROUTE = {
     close: /\/(?:lock|close)(?:\/|\?|$)/i,
-    open: /\/(?:unlock|reopen|open)(?:\/|\?|$)/i
+    open: /\/(?:unlock|reopen|open)(?:\/|\?|$)/i,
+    pin: /\/(?:quick[-_]?stick|quick[-_]?pin|stick|pin)(?:\/|\?|$)/i,
+    unpin: /\/(?:quick[-_]?unstick|quick[-_]?unpin|unstick|unpin)(?:\/|\?|$)/i
   };
+  const THREAD_ACTION_OPPOSITE = { close: 'open', open: 'close', pin: 'unpin', unpin: 'pin' };
 
   function threadActionInfo(node) {
     const label = [node.innerText, node.textContent, node.getAttribute('aria-label'), node.title, node.value]
@@ -1811,7 +1828,7 @@
     const info = threadActionInfo(node);
     const routeMatch = THREAD_ACTION_ROUTE[action].test(info.href);
     const textMatch = THREAD_ACTION_TEXT[action].test(info.label);
-    const oppositeText = THREAD_ACTION_TEXT[action === 'close' ? 'open' : 'close'].test(info.label);
+    const oppositeText = THREAD_ACTION_OPPOSITE[action] && THREAD_ACTION_TEXT[THREAD_ACTION_OPPOSITE[action]].test(info.label);
     if (routeMatch) return true;
     if (!textMatch || oppositeText) return false;
     return !!node.closest('.menu-content, .menu, .menu--structural, .js-threadTools, .threadTools, .thread-tools, .block-outer-opposite, .threadTools-menu, [role="menu"]');
@@ -1823,7 +1840,7 @@
   }
 
   async function revealThreadTools() {
-    if (getThreadActionNodes('close').length || getThreadActionNodes('open').length) return true;
+    if (['close','open','pin','unpin'].some(action => getThreadActionNodes(action).length)) return true;
     const selectors = [
       '.js-threadTools .menuTrigger', '.js-threadTools [data-xf-click~="menu"]',
       '.threadTools .menuTrigger', '.threadTools [data-xf-click~="menu"]',
@@ -1834,7 +1851,7 @@
     for (const toggle of toggles.slice(0, 4)) {
       try { toggle.click(); } catch {}
       await new Promise(resolve => setTimeout(resolve, 180));
-      if (getThreadActionNodes('close').length || getThreadActionNodes('open').length) return true;
+      if (['close','open','pin','unpin'].some(action => getThreadActionNodes(action).length)) return true;
     }
     return false;
   }
@@ -1917,6 +1934,44 @@
     if (state === true) return { changed: true, message: shouldClose ? 'Тема успешно закрыта.' : 'Тема успешно открыта.' };
     if (state === false) return { changed: false, message: 'Префикс сохранён, но форум не подтвердил изменение состояния темы.' };
     return { changed: false, message: 'Команда отправлена. Не удалось проверить новое состояние темы; обнови страницу и проверь значок замка.' };
+  }
+
+
+  async function runAdminThreadAction(action) {
+    const labels = { open: 'открыть тему', close: 'закрыть тему', pin: 'закрепить тему', unpin: 'открепить тему' };
+    const status = inPanel('va340-thread-action-status');
+    if (!isThreadUrl()) { if (status) status.textContent = 'Открой конкретную тему форума. Действие выполняется только на странице темы.'; return; }
+    const buttons = [...panel.querySelectorAll('[data-va-thread-action]')];
+    buttons.forEach(button => { button.disabled = true; });
+    try {
+      await revealThreadTools();
+      const wanted = getThreadActionNodes(action);
+      const opposite = getThreadActionNodes(THREAD_ACTION_OPPOSITE[action]);
+      if (!wanted.length) {
+        if (opposite.length) { if (status) status.textContent = 'Тема уже в нужном состоянии: ' + labels[action] + ' не требуется.'; }
+        else if (status) status.textContent = 'Не найдена штатная команда «' + labels[action] + '». Проверь меню инструментов и права аккаунта.';
+        return;
+      }
+      wanted[0].click();
+      if (action === 'open' || action === 'close') {
+        const shouldClose = action === 'close';
+        const confirmed = await confirmNativeThreadAction(shouldClose, 3500);
+        const state = await waitForThreadState(shouldClose, confirmed ? 3800 : 1800);
+        if (status) status.textContent = state === true ? 'Готово: тема ' + (shouldClose ? 'закрыта.' : 'открыта.') : state === false ? 'Форум не подтвердил изменение. Проверь права и состояние темы.' : 'Команда нажата, но результат не удалось проверить. Проверь окно подтверждения.';
+      } else {
+        const oppositeAction = THREAD_ACTION_OPPOSITE[action], deadline = Date.now() + 3500;
+        let changed = false;
+        while (Date.now() < deadline) {
+          await revealThreadTools();
+          if (getThreadActionNodes(oppositeAction).length && !getThreadActionNodes(action).length) { changed = true; break; }
+          await new Promise(resolve => setTimeout(resolve, 180));
+        }
+        if (status) status.textContent = changed ? 'Готово: тема ' + (action === 'pin' ? 'закреплена.' : 'откреплена.') : 'Команда отправлена, но состояние закрепления не удалось проверить. Обнови тему и проверь.';
+      }
+    } catch (error) {
+      if (status) status.textContent = 'Ошибка: ' + (error?.message || String(error));
+      console.warn('[Vladimir Admin Console] Ошибка управления темой:', error);
+    } finally { buttons.forEach(button => { button.disabled = false; }); }
   }
 
   async function updateThreadPrefix(statusKey) {
@@ -2337,6 +2392,7 @@
       inPanel('va330-reply-status').textContent = 'Ответ «' + reply.label + '» добавлен. Префикс не менялся — выбери его отдельно, когда текст ответа уже готов.';
     });
   });
+  panel.querySelectorAll('[data-va-thread-action]').forEach(button => button.addEventListener('click', () => runAdminThreadAction(button.dataset.vaThreadAction)));
   panel.querySelectorAll('[data-va-prefix-action]').forEach(button => {
     button.addEventListener('click', () => updateThreadPrefix(button.dataset.vaPrefixAction));
   });
