@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Vladimir | Leader & Deputy Center
 // @namespace    Vladimir_Sudarikov.MatreshkaTools
-// @version      2.9.25
+// @version      2.9.26
 // @description  Leader/deputy SLA tracking with native forum username styling.
 // @match        *://forum.matrp.ru/*
 // @noframes
@@ -183,8 +183,8 @@
     .vldc-role-badge--observer { color:#ffe0f2; border-color:#df83b899; background:linear-gradient(110deg,#8e356ced,#632f82ed); }
     #${APP_ID} { --vldc-top:12px; --vldc-left:calc(100vw - 426px); --vldc-width:410px; --vldc-height:760px; position:fixed; top:var(--vldc-top); left:var(--vldc-left); right:auto; bottom:auto; z-index:2147483000; color:#f8f3ff; font:13px/1.45 Inter,Segoe UI,Arial,sans-serif; -webkit-font-smoothing:antialiased; }
     #${APP_ID} button, #${APP_ID} input, #${APP_ID} select { font:inherit; }
-    #${APP_ID} .launch { position:fixed; right:16px; bottom:16px; left:auto; top:auto; z-index:2147483001; display:block; border:1px solid #80699a; border-radius:999px; padding:11px 16px; color:#fff; background:linear-gradient(115deg,#49306e 0%,#7650a4 38%,#a34f82 72%,#b87955 100%); box-shadow:0 6px 18px #160b2460; font-weight:800; cursor:pointer; }
-    #${APP_ID} .panel { display:none; width:min(var(--vldc-width),calc(100vw - 16px)); height:min(var(--vldc-height),calc(100vh - var(--vldc-top) - 8px)); max-height:calc(100vh - var(--vldc-top) - 8px); overflow:hidden; flex-direction:column; min-height:0; border:1px solid #9778b8; border-radius:18px; background:radial-gradient(ellipse at 5% 0%,#65458a45,transparent 42%),radial-gradient(ellipse at 100% 100%,#a45b6a24,transparent 38%),linear-gradient(155deg,#1b1728fa,#30213df7); box-shadow:0 12px 34px #10081780; }
+    #${APP_ID} .launch { position:fixed; right:max(10px,env(safe-area-inset-right)); bottom:max(10px,env(safe-area-inset-bottom)); left:auto; top:auto; z-index:2147483001; display:block; min-height:46px; max-width:calc(100vw - 20px); border:1px solid #80699a; border-radius:999px; padding:12px 16px; color:#fff; background:linear-gradient(115deg,#49306e 0%,#7650a4 38%,#a34f82 72%,#b87955 100%); box-shadow:0 6px 18px #160b2460; font-weight:800; cursor:pointer; touch-action:manipulation; -webkit-tap-highlight-color:transparent; pointer-events:auto; }
+    #${APP_ID} .panel { display:none; width:min(var(--vldc-width),calc(100vw - 16px)); height:min(var(--vldc-height),calc(100dvh - var(--vldc-top) - 8px)); max-height:calc(100dvh - var(--vldc-top) - 8px); overflow:hidden; touch-action:pan-y; flex-direction:column; min-height:0; border:1px solid #9778b8; border-radius:18px; background:radial-gradient(ellipse at 5% 0%,#65458a45,transparent 42%),radial-gradient(ellipse at 100% 100%,#a45b6a24,transparent 38%),linear-gradient(155deg,#1b1728fa,#30213df7); box-shadow:0 12px 34px #10081780; }
     #${APP_ID}.open .panel { display:flex; }
     #${APP_ID}.open .launch { display:none !important; }
     #${APP_ID} .head { display:flex; justify-content:space-between; align-items:center; padding:13px 14px; border-bottom:1px solid #ffffff18; background:linear-gradient(110deg,#76519a66,#3b91a433 52%,#d4a0612b); cursor:ns-resize; user-select:none; touch-action:none; }
@@ -235,8 +235,10 @@
     #${APP_ID} .error { min-height:15px; margin:6px 0; color:#ff9eaa; font-size:10px; }
     #${APP_ID} .toast { position:fixed; right:16px; top:70px; z-index:2147483001; max-width:min(360px,calc(100vw - 36px)); padding:10px 13px; border:1px solid #e8c88f55; border-radius:10px; color:#fff; background:#332546; box-shadow:0 5px 16px #0005; font:12px/1.4 Segoe UI,Arial,sans-serif; }
     @media(max-width:600px){
-      #${APP_ID}{max-width:calc(100vw - 12px)}
-      #${APP_ID} .launch{max-width:calc(100vw - 12px);min-height:46px;padding:12px 14px;font-size:12px;white-space:normal;touch-action:manipulation}
+      #${APP_ID}{left:6px!important;right:auto!important;top:max(6px,env(safe-area-inset-top))!important;width:calc(100vw - 12px)!important;max-width:calc(100vw - 12px)!important;z-index:2147483000!important}
+      #${APP_ID} .launch{right:max(8px,env(safe-area-inset-right));bottom:max(8px,env(safe-area-inset-bottom));max-width:calc(100vw - 16px);min-height:48px;padding:12px 14px;font-size:12px;white-space:normal;touch-action:manipulation;pointer-events:auto}
+      #${APP_ID} .panel{height:min(var(--vldc-height),calc(100dvh - var(--vldc-top) - 8px));max-height:calc(100dvh - var(--vldc-top) - 8px);overscroll-behavior:contain}
+      #${APP_ID} .head-actions .icon,#${APP_ID} .icon,#${APP_ID} .tab,#${APP_ID} .action{touch-action:manipulation}
       #${APP_ID} .panel{width:min(var(--vldc-width),calc(100vw - 12px));height:min(var(--vldc-height),calc(100dvh - var(--vldc-top) - 8px));max-height:calc(100dvh - var(--vldc-top) - 8px);border-radius:14px}
       #${APP_ID} .head{min-height:56px;padding:8px 9px;gap:6px}
       #${APP_ID} .brand{gap:7px}
@@ -322,7 +324,7 @@
 
   const root = document.createElement('div');
   root.id = APP_ID;
-  root.setAttribute('data-console-version', '2.9.23');
+  root.setAttribute('data-console-version', '2.9.26');
   const LD_THEME_KEY = 'vldc_v2_appearance';
   let ldTheme = 'aurora';
   try { const savedTheme = localStorage.getItem(LD_THEME_KEY); if (['aurora','obsidian','pearl','forest','ocean'].includes(savedTheme)) ldTheme = savedTheme; } catch {}
@@ -360,7 +362,7 @@
           <div class="muted" id="topic-toolbar-hint">Одно нажатие: консоль сама откроет меню инструментов, выберет команду и подтвердит только соответствующее действие.</div>
         </section>
         <main class="content" id="content"></main>
-        <footer class="footer"><span>VLADIMIR · LEADER & DEPUTY</span><span>v2.9.21 · STARTUP CHECK</span></footer>
+        <footer class="footer"><span>VLADIMIR · LEADER & DEPUTY</span><span>v2.9.26 · MOBILE FIX</span></footer>
       </div>
       <div class="resize-bottom" title="Потяни вверх или вниз, чтобы изменить высоту панели" aria-label="Изменить высоту панели"></div>
     </section>
@@ -441,6 +443,7 @@
   resizeHandle.addEventListener('pointerup', finishPanelResize);
   resizeHandle.addEventListener('pointercancel', finishPanelResize);
   window.addEventListener('resize', () => applyPanelLayout(), { passive: true });
+  if (window.visualViewport) { window.visualViewport.addEventListener('resize', () => applyPanelLayout(false), { passive: true }); window.visualViewport.addEventListener('scroll', () => applyPanelLayout(false), { passive: true }); }
   if (window.visualViewport) window.visualViewport.addEventListener('resize', () => applyPanelLayout(false), { passive: true });
 
   // Local-only cosmetic rename: the forum account and server-side username are unchanged.
