@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Vladimir | Leader & Deputy Center
 // @namespace    Vladimir_Sudarikov.MatreshkaTools
-// @version      2.8.4
+// @version      2.8.5
 // @description  Leader/deputy SLA tracking with startup diagnostics and resilient panel boot.
 // @match        *://forum.matrp.ru/*
 // @noframes
@@ -457,6 +457,8 @@
 
   // Compact role badges above forum usernames; metadata is local presentation only.
   const ACCOUNT_BADGE_INFO = Object.freeze({
+    '337247': { role: 'leader', label: 'ЛИДЕР · ПРАВИТЕЛЬСТВО' },
+    '337247': { role: 'developer', label: 'Разработчик' },
     '337247': { role: 'leader', label: 'ЛИДЕР · ПРАВИТЕЛЬСТВО' },
     '61846': { role: 'leader', label: 'ЛИДЕР · АРМИЯ' },
     '665168': { role: 'leader', label: 'ЛИДЕР · БОЛЬНИЦА' },
