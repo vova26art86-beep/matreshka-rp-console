@@ -1,14 +1,14 @@
 // ==UserScript==
 // @name         Vladimir | Leader & Deputy Center
 // @namespace    Vladimir_Sudarikov.MatreshkaTools
-// @version      2.9.3
+// @version      2.9.4
 // @description  Leader/deputy SLA tracking with startup diagnostics and resilient panel boot.
 // @match        *://forum.matrp.ru/*
 // @noframes
 // @run-at       document-idle
 // @grant        none
-// @downloadURL  https://raw.githubusercontent.com/vova26art86-beep/matreshka-rp-console/main/vladimir-ld.user.js?v=2.9.3
-// @updateURL    https://raw.githubusercontent.com/vova26art86-beep/matreshka-rp-console/main/vladimir-ld.user.js?v=2.9.3
+// @downloadURL  https://raw.githubusercontent.com/vova26art86-beep/matreshka-rp-console/main/vladimir-ld.user.js
+// @updateURL    https://raw.githubusercontent.com/vova26art86-beep/matreshka-rp-console/main/vladimir-ld.user.js
 // ==/UserScript==
 
 (() => {
