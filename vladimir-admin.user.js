@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name         Vladimir Console — Matreshka RP (4.9.15)
+// @name         Vladimir Console — Matreshka RP (4.9.16)
 // @namespace    Vladimir_Sudarikov.AtelierConsole
-// @version      4.9.15
+// @version      4.9.16
 // @description  Персональная консоль: оформление ника как у Egor_Andyfy
 // @match        https://forum.matrp.ru/*
 // @match        http://forum.matrp.ru/*
