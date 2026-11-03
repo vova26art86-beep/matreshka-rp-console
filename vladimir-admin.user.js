@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name         Vladimir Console — Matreshka RP (4.9.4)
+// @name         Vladimir Console — Matreshka RP (4.9.5)
 // @namespace    Vladimir_Sudarikov.AtelierConsole
-// @version      4.9.4
+// @version      4.9.5
 // @description  Персональная консоль: цвет ника точно берётся из текста плашки Egor_Andyfy; кнопка копирования образца убрана
 // @match        https://forum.matrp.ru/*
 // @match        http://forum.matrp.ru/*
@@ -454,7 +454,7 @@
     for (const selector of selectors) {
       for (const node of document.querySelectorAll(selector)) {
         const href = node.getAttribute('href') || '';
-        const match = href.match(/members\\/[^/?#]*?\\.(\\d+)(?:[/?#]|$)/i);
+        const match = href.match(/members\/[^/?#]*?\.(\d+)(?:[/?#]|$)/i);
         const dataId = node.getAttribute('data-user-id') || node.getAttribute('data-member-id');
         const id = match?.[1] || dataId;
         if (id && AUTHORIZED_FORUM_USERS[id]) return id;
