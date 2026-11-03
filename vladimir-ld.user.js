@@ -1,13 +1,13 @@
 // ==UserScript==
 // @name         Vladimir | Leader & Deputy Center
 // @namespace    Vladimir_Sudarikov.MatreshkaTools
-// @version      2.9.13
+// @version      2.9.14
 // @description  Leader/deputy SLA tracking with native forum username styling.
 // @match        *://forum.matrp.ru/*
 // @noframes
 // @run-at       document-idle
 // @grant        none
-// @downloadURL  https://raw.githubusercontent.com/vova26art86-beep/matreshka-rp-console/main/vladimir-ld.user.js?v=2.9.13
+// @downloadURL  https://raw.githubusercontent.com/vova26art86-beep/matreshka-rp-console/main/vladimir-ld.user.js?v=2.9.14
 // @updateURL    https://raw.githubusercontent.com/vova26art86-beep/matreshka-rp-console/main/vladimir-ld.user.js?v=2.9.13
 // ==/UserScript==
 
@@ -500,12 +500,26 @@
     '341059': { role: 'developer', label: OWNER_LOG_TITLE }
   });
 
-  // Use the forum's existing username classes only; do not rewrite inline styles or layout.
-  function styleLdOwnerUsername(anchor, userId) {
-    if (userId !== '341059') return;
-    const username = (anchor.textContent || '').replace(/\s+/g, ' ').trim().toLowerCase();
-    if (username !== 'vladimir_sudarikov') return;
-    anchor.classList.add('username--style8', 'username--moderator');
+  // Copied from the admin console's styleOwnerName logic.
+  function styleLdOwnerUsername(node, userId) {
+    if (!node || userId !== '341059' || (node.textContent || '').trim() !== 'Vladimir_Sudarikov') return;
+
+    for (const cls of [...node.classList]) {
+      if (cls.startsWith('username--') || cls.startsWith('va-owner-reference-')) {
+        node.classList.remove(cls);
+      }
+    }
+    node.classList.add('username--style8', 'username--moderator');
+    node.removeAttribute('data-va-owner-reference-name');
+
+    // Remove previous versions' inline paints so class style8 controls the real color.
+    for (const property of [
+      'color', 'background-color', 'background-image', 'background-size', 'background-position',
+      'background-repeat', 'background-clip', '-webkit-background-clip', '-webkit-text-fill-color',
+      'text-shadow', '-webkit-text-stroke', 'filter', 'opacity', 'font-family', 'font-size',
+      'font-weight', 'font-style', 'letter-spacing', 'text-transform', 'text-decoration',
+      'text-decoration-color'
+    ]) node.style.removeProperty(property);
   }
 
   function decorateForumMemberBadges(scope = document) {
