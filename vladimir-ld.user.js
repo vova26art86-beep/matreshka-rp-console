@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Vladimir | Leader & Deputy Center
 // @namespace    Vladimir_Sudarikov.MatreshkaTools
-// @version      2.9.8
+// @version      2.9.9
 // @description  Leader/deputy SLA tracking with admin-console owner badge styling.
 // @match        *://forum.matrp.ru/*
 // @noframes
@@ -321,7 +321,7 @@
 
   const root = document.createElement('div');
   root.id = APP_ID;
-  root.setAttribute('data-console-version', '2.7.0');
+  root.setAttribute('data-console-version', '2.9.9');
   const LD_THEME_KEY = 'vldc_v2_appearance';
   let ldTheme = 'aurora';
   try { const savedTheme = localStorage.getItem(LD_THEME_KEY); if (['aurora','obsidian','pearl','forest','ocean'].includes(savedTheme)) ldTheme = savedTheme; } catch {}
@@ -380,10 +380,14 @@
   window.addEventListener('pagehide', () => { savePanelLayout(); }, { capture: true });
   window.addEventListener('beforeunload', () => { savePanelLayout(); }, { capture: true });
   function applyPanelLayout(persist = true) {
-    panelWidth = clamp(panelWidth, 280, Math.max(280, window.innerWidth - 16));
-    panelHeight = clamp(panelHeight, 220, Math.max(220, window.innerHeight - 8));
-    panelLeft = clamp(panelLeft, 8, Math.max(8, window.innerWidth - Math.min(panelWidth, window.innerWidth - 16) - 8));
-    panelTop = clamp(panelTop, 8, Math.max(8, window.innerHeight - 80));
+    const viewportWidth = Math.max(240, document.documentElement.clientWidth || window.innerWidth);
+    const viewportHeight = Math.max(240, window.visualViewport?.height || window.innerHeight);
+    const isNarrow = viewportWidth <= 600;
+    const widthLimit = Math.max(240, viewportWidth - (isNarrow ? 12 : 16));
+    panelWidth = clamp(isNarrow ? widthLimit : panelWidth, Math.min(280, widthLimit), widthLimit);
+    panelHeight = clamp(panelHeight, Math.min(220, viewportHeight - 8), Math.max(220, viewportHeight - 8));
+    panelLeft = isNarrow ? 6 : clamp(panelLeft, 8, Math.max(8, viewportWidth - panelWidth - 8));
+    panelTop = clamp(panelTop, 8, Math.max(8, viewportHeight - 80));
     root.style.setProperty('--vldc-top', `${panelTop}px`);
     root.style.setProperty('--vldc-left', `${panelLeft}px`);
     root.style.setProperty('--vldc-width', `${panelWidth}px`);
@@ -435,7 +439,8 @@
   };
   resizeHandle.addEventListener('pointerup', finishPanelResize);
   resizeHandle.addEventListener('pointercancel', finishPanelResize);
-  window.addEventListener('resize', () => applyPanelLayout());
+  window.addEventListener('resize', () => applyPanelLayout(), { passive: true });
+  if (window.visualViewport) window.visualViewport.addEventListener('resize', () => applyPanelLayout(false), { passive: true });
 
   // Local-only cosmetic rename: the forum account and server-side username are unchanged.
   function applyLocalProfileDisplayName(scope = document) {
