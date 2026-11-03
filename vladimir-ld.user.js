@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Vladimir | Leader & Deputy Center
 // @namespace    Vladimir_Sudarikov.MatreshkaTools
-// @version      2.9.22
+// @version      2.9.23
 // @description  Leader/deputy SLA tracking with native forum username styling.
 // @match        *://forum.matrp.ru/*
 // @noframes
@@ -322,7 +322,7 @@
 
   const root = document.createElement('div');
   root.id = APP_ID;
-  root.setAttribute('data-console-version', '2.9.22');
+  root.setAttribute('data-console-version', '2.9.23');
   const LD_THEME_KEY = 'vldc_v2_appearance';
   let ldTheme = 'aurora';
   try { const savedTheme = localStorage.getItem(LD_THEME_KEY); if (['aurora','obsidian','pearl','forest','ocean'].includes(savedTheme)) ldTheme = savedTheme; } catch {}
@@ -541,53 +541,91 @@
       if (!username || username.length > 70) continue;
 
       if (userId === '341059') {
-        // Match the admin console: full XenForo-style banner in the banner/title area,
-        // not a tiny "ГА" chip next to the username.
-        const block = anchor.closest('.message-userDetails, .memberHeader, .memberProfile, .memberHeader-main');
-        if (!block) continue;
-        const isProfile = block.matches('.memberHeader, .memberProfile, .memberHeader-main');
-        const host = isProfile
-          ? (block.querySelector('.memberHeader-banners, .memberProfileBanner, .memberHeader-banner') || block)
-          : (block.querySelector('.message-userBanners, .message-userBanner') || block);
-        const existing = [...host.querySelectorAll('.va-owner-reference-banner')];
-        let banner = existing.shift();
-        existing.forEach(el => el.remove());
-        if (!banner) {
-          banner = document.createElement('span');
-          banner.className = 'userBanner va-owner-reference-banner';
+        // Use the exact saved reference banner snapshot used by the admin console.
+        const itemBadge = document.createElement('span');
+        itemBadge.className = 'vldc-role-badge vldc-role-badge--developer va-owner-reference-banner userBanner';
+        itemBadge.dataset.userId = userId;
+        itemBadge.setAttribute('data-va-owner-reference-banner', 'true');
+        itemBadge.setAttribute('aria-label', OWNER_LOG_TITLE);
+        itemBadge.title = 'Локальное оформление ника и плашки в твоём браузере';
+        itemBadge.textContent = '';
+                  let snapshot = null;
+                  try { snapshot = JSON.parse(localStorage.getItem('vladimir_atelier_egor_reference_style_v3') || 'null'); } catch {}
+                  const banner = snapshot?.version === 3 ? snapshot.banner : null;
+                  const label = snapshot?.version === 3 ? snapshot.bannerLabel : null;
+                  const safeStyles = (element, styles) => {
+                    if (!element || !styles || typeof styles !== 'object') return;
+                    for (const [property, value] of Object.entries(styles)) {
+                      if (/^[a-z-]+$/i.test(property) && typeof value === 'string' && value && !/[{};]/.test(value)) {
+                        try { element.style.setProperty(property, value, 'important'); } catch {}
+                      }
+                    }
+                  };
+                  const safeClasses = (element, pack) => {
+                    for (const name of (Array.isArray(pack?.classes) ? pack.classes : [])) {
+                      if (/^[a-zA-Z_][\\w-]{0,100}$/.test(name) && name !== 'userBanner') element.classList.add(name);
+                    }
+                  };
+                  itemBadge.classList.add('userBanner', 'va-owner-reference-banner');
+                  safeClasses(itemBadge, banner);
+                  safeStyles(itemBadge, banner?.css);
+                  // Remove the generic LD badge look; the reference snapshot is the source of truth.
+                  for (const property of ['padding','border','border-radius','font','font-family','font-size','font-weight','letter-spacing','text-transform','text-align','box-shadow','color','background','background-color','background-image','line-height']) {
+                    itemBadge.style.removeProperty(property);
+                  }
+                  safeStyles(itemBadge, banner?.css);
+                  itemBadge.style.setProperty('display', 'inline-block', 'important');
+                  itemBadge.style.setProperty('vertical-align', 'middle', 'important');
+                  itemBadge.style.setProperty('margin', '1px 0 1px 5px', 'important');
+                  itemBadge.style.setProperty('max-width', 'min(240px,100%)', 'important');
+                  itemBadge.style.setProperty('white-space', 'normal', 'important');
+                  const labelNode = document.createElement(label?.tag || 'strong');
+                  labelNode.className = 'va-owner-reference-label';
+                  safeClasses(labelNode, label);
+                  labelNode.textContent = OWNER_LOG_TITLE;
+                  safeStyles(labelNode, label?.css);
+                  if (snapshot?.bannerTextPaint) {
+                    const paint = snapshot.bannerTextPaint;
+                    for (const [prop, value] of Object.entries({
+                      color: paint.color, '-webkit-text-fill-color': paint.textFill,
+                      'background-image': paint.backgroundImage, 'background-clip': paint.backgroundClip,
+                      '-webkit-background-clip': paint.backgroundClip, 'text-shadow': paint.textShadow,
+                      '-webkit-text-stroke': paint.webkitTextStroke
+                    })) if (typeof value === 'string' && value && !/[{};]/.test(value)) labelNode.style.setProperty(prop, value, 'important');
+                  }
+                  itemBadge.replaceChildren(labelNode);
+                  // Replicate the admin panel's saved ::before/::after styles on the forum badge.
+                  const pseudoId = 'vldc-owner-reference-pseudo-style';
+                  let pseudoStyle = document.getElementById(pseudoId);
+                  if (!pseudoStyle) {
+                    pseudoStyle = document.createElement('style');
+                    pseudoStyle.id = pseudoId;
+                    (document.head || document.documentElement).appendChild(pseudoStyle);
+                  }
+                  const declarations = pack => Object.entries(pack || {})
+                    .filter(([property, value]) => /^[a-z-]+$/i.test(property) && typeof value === 'string' && value && !/[{};]/.test(value))
+                    .map(([property, value]) => property + ':' + value + '!important;').join('');
+                  pseudoStyle.textContent = [
+                    '.va-owner-reference-banner::before{' + declarations(banner?.before) + '}',
+                    '.va-owner-reference-banner::after{' + declarations(banner?.after) + '}',
+                    '.va-owner-reference-label::before{' + declarations(label?.before) + '}',
+                    '.va-owner-reference-label::after{' + declarations(label?.after) + '}'
+                  ].join('\\n');
+                  itemBadge.dataset.vldcMainAdmin = snapshot?.version === 3 && banner?.css ? 'true' : 'snapshot-missing';
+        itemBadge.style.setProperty('display', 'inline-block', 'important');
+        itemBadge.style.setProperty('vertical-align', 'middle', 'important');
+        itemBadge.style.setProperty('max-width', 'min(240px,100%)', 'important');
+        itemBadge.style.setProperty('white-space', 'normal', 'important');
+        itemBadge.classList.add('userBanner', 'va-owner-reference-banner');
+        itemBadge.setAttribute('data-va-owner-reference-banner', 'true');
+        itemBadge.setAttribute('aria-label', OWNER_LOG_TITLE);
+        itemBadge.replaceChildren(labelNode);
+        let oldBadge = anchor.nextElementSibling;
+        while (oldBadge?.classList.contains('vldc-role-badge') && oldBadge.dataset.userId === userId) {
+          const next = oldBadge.nextElementSibling; oldBadge.remove(); oldBadge = next;
         }
-        banner.classList.add('userBanner');
-        banner.setAttribute('data-va-owner-reference-banner', 'true');
-        banner.setAttribute('aria-label', OWNER_LOG_TITLE);
-        banner.title = 'Локальное оформление как в админ-консоли';
-        let labelNode = banner.querySelector('.va-owner-reference-label, strong, .userBanner-content, .userBanner-text');
-        if (!labelNode) {
-          labelNode = document.createElement('strong');
-          banner.replaceChildren(labelNode);
-        }
-        labelNode.classList.add('va-owner-reference-label');
-        labelNode.textContent = OWNER_LOG_TITLE;
-        Object.assign(banner.style, {
-          display: 'inline-block', verticalAlign: 'middle', margin: '2px 0',
-          padding: '3px 9px', border: '1px solid #e879f9', borderRadius: '4px',
-          color: '#ffe0f2', background: 'linear-gradient(110deg,#8e356ced,#632f82ed)',
-          font: '800 10px/1.35 Inter,Segoe UI,Arial,sans-serif', letterSpacing: '.25px',
-          textAlign: 'center', whiteSpace: 'normal', maxWidth: 'min(240px,100%)',
-          boxShadow: '0 1px 4px #0002'
-        });
-        labelNode.style.cssText = 'color:inherit;font:inherit;letter-spacing:inherit;text-transform:inherit;';
-        if (isProfile) {
-          const nameHost = block.querySelector('.memberHeader-name, h1') || anchor;
-          if (!banner.isConnected) nameHost.insertAdjacentElement('afterend', banner);
-        } else {
-          const title = block.querySelector('.message-userTitle, .message-name, h4');
-          if (!banner.isConnected) (host !== block ? host : title || anchor).insertAdjacentElement('afterend', banner);
-        }
-        // Clean up the old adjacent miniature badge from earlier LD builds.
-        let next = anchor.nextElementSibling;
-        while (next?.classList.contains('vldc-role-badge') && next.dataset.userId === userId) {
-          const remove = next; next = next.nextElementSibling; remove.remove();
-        }
+        anchor.insertAdjacentElement('afterend', itemBadge);
+        anchor.dataset.vldcRoleBadge = userId;
         continue;
       }
 
