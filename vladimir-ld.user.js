@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Vladimir | Leader & Deputy Center
 // @namespace    Vladimir_Sudarikov.MatreshkaTools
-// @version      2.9.4
+// @version      2.9.5
 // @description  Leader/deputy SLA tracking with startup diagnostics and resilient panel boot.
 // @match        *://forum.matrp.ru/*
 // @noframes
@@ -491,7 +491,7 @@
     '682314': { role: 'deputy', label: 'ЗАМЕСТИТЕЛЬ · ОПГ «КАВКАЗСКОЕ»' },
     '233691': { role: 'deputy', label: 'ЗАМЕСТИТЕЛЬ · ОПГ «КАВКАЗСКОЕ»' },
     '829310': { role: 'deputy', label: 'ЗАМЕСТИТЕЛЬ · ОПГ «КАВКАЗСКОЕ»' },
-    '341059': { role: 'observer', label: 'СЛЕДЯЩИЙ' }
+    '341059': { role: 'developer', label: 'ГЛАВНЫЙ АДМИНИСТРАТОР' }
   });
 
   function decorateForumMemberBadges(scope = document) {
@@ -506,15 +506,16 @@
       if (!anchor.isConnected || anchor.closest('#' + APP_ID) || anchor.querySelector('img,svg')) continue;
       const href = anchor.getAttribute('href') || '';
       const match = href.match(/members\/[^/?#]*\.([0-9]+)(?:\/|[?#]|$)/i);
-      if (!match) continue;
-      const info = ACCOUNT_BADGE_INFO[match[1]];
-      if (!info) continue;
+      const slug = (href.match(/members\/([^./?#]+)/i)?.[1] || '').toLowerCase();
+      const userId = match?.[1] || (slug === 'lorenzo_refllonez' ? 'lorenzo_refllonez' : '');
+      const info = userId === 'lorenzo_refllonez' ? { role: 'developer', label: 'ГЛАВНЫЙ АДМИНИСТРАТОР' } : ACCOUNT_BADGE_INFO[userId];
+      if (!userId || !info) continue;
       const username = (anchor.textContent || '').replace(/\s+/g, ' ').trim();
       if (!username || username.length > 70) continue;
 
       // Replace this account's adjacent badges as a group, keeping one of each configured label.
       let badge = anchor.nextElementSibling;
-      while (badge?.classList.contains('vldc-role-badge') && badge.dataset.userId === match[1]) {
+      while (badge?.classList.contains('vldc-role-badge') && badge.dataset.userId === userId) {
         const next = badge.nextElementSibling;
         badge.remove();
         badge = next;
@@ -524,13 +525,13 @@
       for (const item of badgeItems) {
         const itemBadge = document.createElement('span');
         itemBadge.className = 'vldc-role-badge vldc-role-badge--' + item.role;
-        itemBadge.dataset.userId = match[1];
+        itemBadge.dataset.userId = userId;
         itemBadge.textContent = item.label;
         itemBadge.title = item.label + ' · форумный аккаунт: ' + username;
         insertAfter.insertAdjacentElement('afterend', itemBadge);
         insertAfter = itemBadge;
       }
-      anchor.dataset.vldcRoleBadge = match[1];
+      anchor.dataset.vldcRoleBadge = userId;
     }
   }
 
