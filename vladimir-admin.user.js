@@ -1,14 +1,14 @@
 // ==UserScript==
 // @name         Vladimir Console — Matreshka RP (4.7.8 · forum theme integrated)
 // @namespace    Vladimir_Sudarikov.AtelierConsole
-// @version      4.8.9
+// @version      4.9.0
 // @description  Персональная консоль: цвет ника точно берётся из текста плашки Egor_Andyfy; кнопка копирования образца убрана
 // @match        https://forum.matrp.ru/*
 // @match        http://forum.matrp.ru/*
 // @run-at       document-idle
 // @grant        none
-// @downloadURL  https://raw.githubusercontent.com/vova26art86-beep/matreshka-rp-console/main/vladimir-admin.user.js?v=4.8.9
-// @updateURL    https://raw.githubusercontent.com/vova26art86-beep/matreshka-rp-console/main/vladimir-admin.user.js?v=4.8.9
+// @downloadURL  https://raw.githubusercontent.com/vova26art86-beep/matreshka-rp-console/main/vladimir-admin.user.js?v=4.9.0
+// @updateURL    https://raw.githubusercontent.com/vova26art86-beep/matreshka-rp-console/main/vladimir-admin.user.js?v=4.9.0
 // ==/UserScript==
 
 (() => {
@@ -258,7 +258,8 @@
           <button class="va-reply resolve" data-va-template="resolved">◆ Решено<span class="va-caption">Вердикт и закрытие темы</span></button>
           <button class="va-reply transfer" data-va-template="transfer">↗ Передать ГА<span class="va-caption">Ожидание вердикта</span></button>
           <button class="va-reply" data-va-template="evidence">＋ Запрос доказательств<span class="va-caption">Нужно дополнить жалобу</span></button>
-          <button class="va-reply reject" data-va-template="reject-format">▣ Не по форме<span class="va-caption">Отказ с ссылкой на правила</span></button>
+          <button class="va-reply reject" data-va-template="reject-format">▣ Не по форме · игрок<span class="va-caption">Отдельный шаблон для игрока</span></button>
+          <button class="va-reply reject" data-va-template="reject-leader-format">▣ Не по форме · ЛД<span class="va-caption">Отдельный шаблон для лидера</span></button>
           <button class="va-reply reject" data-va-template="reject-evidence">⌕ Нет доказательств<span class="va-caption">Недостаточно подтверждений</span></button>
         </div>
         <div class="va-status" id="va330-reply-status">Нажми шаблон — ответ вставится в открытый редактор. Если редактора нет, BBCode скопируется.</div>
@@ -2055,7 +2056,8 @@
     const reasonFallbacks = {
       approve: 'нарушение правил сервера',
       'reject-player': 'не соблюдены требования к подаче жалобы',
-      'reject-leader': 'не соблюдены требования к подаче жалобы на лидера',
+      'reject-leader': '',
+      'reject-leader-format': 'нарушены требования к оформлению жалобы на лидера',
       'reject-format': 'нарушены требования к оформлению жалобы',
       'reject-evidence': 'в материалах жалобы недостаточно доказательств',
       resolved: 'вопрос рассмотрен и решён',
@@ -2083,7 +2085,7 @@
           ['Здравствуйте, уважаемый(ая) ' + name, '#b99aff', true],
           ['', '#b99aff', false],
           ['Вердикт: ОТКАЗ. Ваша жалоба отклонена. Причина: ' + reason + '.', '#ff8296', true],
-          ['Ознакомьтесь с правилами подачи жалоб: https://forum.matrp.ru/index.php?threads/pravila-podaci-zaloby.66297/', '#f0c674', false],
+          ['LINK:Правила подачи жалоб|https://forum.matrp.ru/index.php?threads/pravila-podaci-zaloby.66297/', '#f0c674', false],
           ['', '#b99aff', false],
           ['━━━━━━━━━━━━━━━━━━━━', '#d6b36a', true],
           ['', '#b99aff', false],
@@ -2096,7 +2098,7 @@
           ['Здравствуйте, уважаемый(ая) ' + name, '#b99aff', true],
           ['', '#b99aff', false],
           ['Вердикт: ОТКАЗ. Ваша жалоба на лидера отклонена. Причина: ' + reason + '.', '#ff8296', true],
-          ['Ознакомьтесь с правилами подачи жалоб на лидеров: https://forum.matrp.ru/index.php?threads/pravila-podaci-zaloby-na-liderov.3333380/', '#f0c674', false],
+          ['LINK:Правила подачи жалоб на лидеров|https://forum.matrp.ru/index.php?threads/pravila-podaci-zaloby-na-liderov.3333380/', '#f0c674', false],
           ['', '#b99aff', false],
           ['━━━━━━━━━━━━━━━━━━━━', '#d6b36a', true],
           ['', '#b99aff', false],
@@ -2135,7 +2137,20 @@
           ['Здравствуйте, уважаемый(ая) ' + name, '#b99aff', true],
           ['', '#b99aff', false],
           ['Вердикт: ОТКАЗ. Ваша жалоба отклонена, поскольку она оформлена не по правилам подачи жалоб.', '#ff8296', true],
-          ['Пожалуйста, ознакомьтесь с правилами подачи жалоб и учитывайте их при повторном обращении: https://forum.matrp.ru/index.php?threads/pravila-podaci-zaloby.66297/', '#f0c674', false],
+          ['LINK:Правила подачи жалоб|https://forum.matrp.ru/index.php?threads/pravila-podaci-zaloby.66297/', '#f0c674', false],
+          ['', '#b99aff', false],
+          ['━━━━━━━━━━━━━━━━━━━━', '#d6b36a', true],
+          ['', '#b99aff', false],
+          [thanks, '#8db6ff', false]
+        ]
+      },
+      'reject-leader-format': {
+        label: 'Отказ по жалобе на лидера · не по форме',
+        blocks: [
+          ['Здравствуйте, уважаемый(ая) ' + name, '#b99aff', true],
+          ['', '#b99aff', false],
+          ['Вердикт: ОТКАЗ. Ваша жалоба на лидера отклонена, поскольку она оформлена не по правилам подачи жалоб на лидеров.', '#ff8296', true],
+          ['LINK:Правила подачи жалоб на лидеров|https://forum.matrp.ru/index.php?threads/pravila-podaci-zaloby-na-liderov.3333380/', '#f0c674', false],
           ['', '#b99aff', false],
           ['━━━━━━━━━━━━━━━━━━━━', '#d6b36a', true],
           ['', '#b99aff', false],
@@ -2175,6 +2190,10 @@
   function blocksToBBCode(blocks) {
     return '[CENTER]' + blocks.map(([text, color, bold]) => {
       if (!text) return '';
+      if (text.startsWith('LINK:')) {
+        const parts = text.slice(5).split('|');
+        return '[COLOR=' + color + '][URL=' + (parts[1] || '') + ']' + (parts[0] || 'Правила') + '[/URL][/COLOR]';
+      }
       const safe = text.replace(/\[/g, '&#91;').replace(/\]/g, '&#93;');
       return '[COLOR=' + color + ']' + (bold ? '[B]' + safe + '[/B]' : safe) + '[/COLOR]';
     }).join('\n\n') + '[/CENTER]';
@@ -2189,7 +2208,16 @@
       } else {
         const span = document.createElement('span');
         span.style.color = color;
-        span.textContent = text;
+        if (text.startsWith('LINK:')) {
+          const parts = text.slice(5).split('|');
+          const a = document.createElement('a');
+          a.href = parts[1] || '#';
+          a.textContent = parts[0] || 'Правила';
+          a.target = '_blank';
+          a.rel = 'noopener noreferrer';
+          a.style.color = color;
+          span.appendChild(a);
+        } else span.textContent = text;
         if (bold) {
           const strong = document.createElement('strong');
           strong.appendChild(span);
