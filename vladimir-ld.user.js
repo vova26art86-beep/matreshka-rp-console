@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Vladimir | Leader & Deputy Center
 // @namespace    Vladimir_Sudarikov.MatreshkaTools
-// @version      2.7.2
+// @version      2.7.3
 // @description  Leader/deputy SLA tracking with startup diagnostics and resilient panel boot.
 // @match        *://forum.matrp.ru/*
 // @noframes
@@ -374,6 +374,7 @@
   function savePanelLayout() {
     try { localStorage.setItem(PANEL_LAYOUT_KEY, JSON.stringify({ top: panelTop, left: panelLeft, width: panelWidth, height: panelHeight })); } catch {}
   }
+  window.addEventListener('pagehide', () => savePanelLayout(), { capture: true });
   function applyPanelLayout(persist = true) {
     panelWidth = clamp(panelWidth, 280, Math.max(280, window.innerWidth - 16));
     panelHeight = clamp(panelHeight, 220, Math.max(220, window.innerHeight - 8));
