@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Matreshka RP — Forum Atelier Theme
 // @namespace    https://github.com/vova26art86-beep/matreshka-rp-console
-// @version      1.0.1
+// @version      1.0.2
 // @description  Единое современное оформление форума Matreshka RP с выбором темы
 // @author       Vladimir
 // @match        https://forum.matrp.ru/*
