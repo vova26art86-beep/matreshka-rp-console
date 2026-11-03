@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Vladimir Console — Matreshka RP (4.7.8 · forum theme integrated)
 // @namespace    Vladimir_Sudarikov.AtelierConsole
-// @version      4.8.7
+// @version      4.8.8
 // @description  Персональная консоль: цвет ника точно берётся из текста плашки Egor_Andyfy; кнопка копирования образца убрана
 // @match        https://forum.matrp.ru/*
 // @match        http://forum.matrp.ru/*
@@ -39,7 +39,7 @@
   };
   const ITERATIONS = 310000;
   const ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%&*';
-  const DEFAULTS = { theme: 'obsidian', accent: '#a78bfa', notes: '', minimized: false, top: 82, right: 18, replyName: '', replyReason: '', cacheEnabled: true, cacheTtlMinutes: 30 };
+  const DEFAULTS = { theme: 'obsidian', accent: '#a78bfa', notes: '', minimized: false, panelHeight: 0, top: 82, right: 18, replyName: '', replyReason: '', cacheEnabled: true, cacheTtlMinutes: 30 };
 
   if (location.hostname !== 'forum.matrp.ru') {
     console.warn('[Vladimir Console 4.7.3] Скрипт рассчитан на https://forum.matrp.ru/');
@@ -57,6 +57,7 @@
     if (!['obsidian', 'pearl', 'forest'].includes(settings.theme)) settings.theme = DEFAULTS.theme;
     if (!/^#[0-9a-f]{6}$/i.test(settings.accent)) settings.accent = DEFAULTS.accent;
     if (typeof settings.notes !== 'string') settings.notes = '';
+    if (!Number.isFinite(settings.panelHeight) || settings.panelHeight < 0) settings.panelHeight = DEFAULTS.panelHeight;
     if (!Number.isFinite(settings.top)) settings.top = DEFAULTS.top;
     if (!Number.isFinite(settings.right)) settings.right = DEFAULTS.right;
     if (typeof settings.cacheEnabled !== 'boolean') settings.cacheEnabled = DEFAULTS.cacheEnabled;
@@ -367,6 +368,12 @@
     // Сначала восстановить сохранённые координаты, затем показать панель.
     // Не вычисляем top от нижней кнопки при каждом открытии: это затирало пользовательское положение.
     applyPanelPosition(false);
+    if (Number(settings.panelHeight) >= 180 && !settings.minimized) {
+      panel.classList.add('va-user-resized');
+      panel.style.height = Math.min(settings.panelHeight, Math.max(180, window.innerHeight - settings.top - 8)) + 'px';
+      const body = inPanel('va320-body');
+      if (body) body.style.maxHeight = 'none';
+    }
     panel.classList.add('va-show');
     const body = inPanel('va320-body');
     body.hidden = !!settings.minimized;
@@ -2421,13 +2428,15 @@
             panel.style.height = '';
           }
         }
+        if (didMove) settings.panelHeight = Math.round(panel.getBoundingClientRect().height);
+        else if (settings.minimized) settings.panelHeight = 0;
         saveSettings();
       };
       document.addEventListener('pointermove', move);
       document.addEventListener('pointerup', up, { once: true });
     });
   })();
-  inPanel('va320-min').addEventListener('click', () => { settings.minimized = !settings.minimized; inPanel('va320-body').hidden = settings.minimized; inPanel('va320-min').textContent = settings.minimized ? '+' : '−'; saveSettings(); });
+  inPanel('va320-min').addEventListener('click', () => { settings.minimized = !settings.minimized; inPanel('va320-body').hidden = settings.minimized; inPanel('va320-min').textContent = settings.minimized ? '+' : '−'; if (settings.minimized) { settings.panelHeight = Number(settings.panelHeight) || Math.round(panel.getBoundingClientRect().height); panel.classList.remove('va-user-resized'); panel.style.height = ''; } else if (settings.panelHeight >= 180) { panel.classList.add('va-user-resized'); panel.style.height = Math.min(settings.panelHeight, Math.max(180, window.innerHeight - settings.top - 8)) + 'px'; inPanel('va320-body').style.maxHeight = 'none'; } saveSettings(); });
   inPanel('va320-close').addEventListener('click', () => panel.classList.remove('va-show'));
   enablePanelDragging();
   window.addEventListener('resize', () => applyPanelPosition(true), { passive: true });
