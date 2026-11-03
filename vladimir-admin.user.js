@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name         Vladimir Console — Matreshka RP (4.9.9)
+// @name         Vladimir Console — Matreshka RP (4.9.10)
 // @namespace    Vladimir_Sudarikov.AtelierConsole
-// @version      4.9.9
+// @version      4.9.10
 // @description  Персональная консоль: оформление ника как у Egor_Andyfy
 // @match        https://forum.matrp.ru/*
 // @match        http://forum.matrp.ru/*
@@ -23,7 +23,7 @@
     myFollowing: 'https://forum.matrp.ru/index.php?members/vladimir_sudarikov.341059/following/',
     heartbeat: 'https://forum.matrp.ru/index.php?forums/obsie-pravila-serverov.1956/'
   };
-  const OWNER_LOG_TITLE = 'ГА';
+  const OWNER_LOG_TITLE = 'Ст. специалист по обработке логов';
   const STYLE_REFERENCE = { username: 'Egor_Andyfy', profileId: '155084', storageKey: 'vladimir_atelier_egor_reference_style_v3' };
   const IDS = {
     style: 'vladimir-atelier-320-style',
@@ -744,20 +744,10 @@
     banner.classList.add('userBanner', 'va-owner-reference-banner');
     banner.setAttribute('data-va-owner-reference-banner', 'true');
     banner.setAttribute('aria-label', OWNER_LOG_TITLE);
-    banner.setAttribute('title', 'Локальная плашка ГА');
+    banner.setAttribute('title', 'Локальное оформление ника и плашки в твоём браузере');
     ensureOwnerBannerLabel(banner);
-    if (ownerReferenceSnapshot) {
-      applyInlineSnapshot(banner, ownerReferenceSnapshot.banner.css);
-      applyInlineSnapshot(banner.querySelector('.va-owner-reference-label'), ownerReferenceSnapshot.bannerLabel?.css);
-    } else {
-      Object.assign(banner.style, {
-        display: 'inline-block', verticalAlign: 'middle', margin: '1px 0 1px 5px',
-        padding: '2px 8px', border: '1px solid #e879f9', borderRadius: '999px',
-        color: '#ffe0f2', background: 'linear-gradient(110deg,#8e356ced,#632f82ed)',
-        font: '800 9px/1.3 Inter,Segoe UI,Arial,sans-serif', letterSpacing: '.3px',
-        textTransform: 'uppercase', boxShadow: '0 1px 4px #0002'
-      });
-    }
+    applyInlineSnapshot(banner, ownerReferenceSnapshot?.banner?.css);
+    applyInlineSnapshot(banner.querySelector('.va-owner-reference-label'), ownerReferenceSnapshot?.bannerLabel?.css);
     return banner;
   }
 
@@ -798,7 +788,7 @@
     if (root.querySelectorAll) nameNodes.push(...root.querySelectorAll(OWNER_NAME_SELECTOR));
     for (const node of nameNodes) styleOwnerName(node);
 
-    // Render the GA banner even when the optional reference-style snapshot is missing.
+    // Keep the original profile banner behavior and label.
     const messageBlocks = new Set();
     if (root instanceof Element) {
       const ownBlock = root.matches('.message-userDetails') ? root : root.closest('.message-userDetails');
