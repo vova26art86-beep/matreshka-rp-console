@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Vladimir Console — Matreshka RP (4.7.8 · forum theme integrated)
 // @namespace    Vladimir_Sudarikov.AtelierConsole
-// @version      4.7.9
+// @version      4.8.0
 // @description  Персональная консоль: цвет ника точно берётся из текста плашки Egor_Andyfy; кнопка копирования образца убрана
 // @match        https://forum.matrp.ru/*
 // @match        http://forum.matrp.ru/*
@@ -352,7 +352,7 @@
       if (!drag || event.pointerId !== drag.pointerId) return;
       settings.top = drag.top + (event.clientY - drag.startY);
       settings.right = drag.right - (event.clientX - drag.startX);
-      applyPanelPosition(false);
+      applyPanelPosition(true);
     });
     const finishDrag = event => {
       if (!drag || event.pointerId !== drag.pointerId) return;
