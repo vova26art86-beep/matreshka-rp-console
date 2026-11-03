@@ -457,9 +457,7 @@
 
   // Compact role badges above forum usernames; metadata is local presentation only.
   const ACCOUNT_BADGE_INFO = Object.freeze({
-    '337247': { role: 'leader', label: 'ЛИДЕР · ПРАВИТЕЛЬСТВО' },
     '337247': { role: 'developer', label: 'Разработчик' },
-    '337247': { role: 'leader', label: 'ЛИДЕР · ПРАВИТЕЛЬСТВО' },
     '61846': { role: 'leader', label: 'ЛИДЕР · АРМИЯ' },
     '665168': { role: 'leader', label: 'ЛИДЕР · БОЛЬНИЦА' },
     '395998': { role: 'leader', label: 'ЛИДЕР · ГТРК «ТЕМП»' },
