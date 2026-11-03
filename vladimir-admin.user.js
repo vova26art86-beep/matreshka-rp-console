@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name         Vladimir Console — Matreshka RP (4.9.12)
+// @name         Vladimir Console — Matreshka RP (4.9.13)
 // @namespace    Vladimir_Sudarikov.AtelierConsole
-// @version      4.9.12
+// @version      4.9.13
 // @description  Персональная консоль: оформление ника как у Egor_Andyfy
 // @match        https://forum.matrp.ru/*
 // @match        http://forum.matrp.ru/*
@@ -701,27 +701,11 @@
       || node.getAttribute?.('data-user-id') === '341059'
       || Boolean(node.closest?.('[data-user-id="341059"]'));
     if (!isOwner) return;
-    // Always restore the real forum nickname; older local cosmetic renames must not persist.
+    // Keep the original forum nickname and native forum styling; do not force the Egor reference style.
     if ((node.textContent || '').trim() !== OWNER) node.textContent = OWNER;
-
-    for (const cls of [...node.classList]) {
-      if (cls.startsWith('username--') || cls.startsWith('va-owner-reference-')) {
-        node.classList.remove(cls);
-      }
-    }
-    node.classList.add('username--style8', 'username--moderator');
+    node.classList.remove('va-owner-reference-name');
     node.removeAttribute('data-va-owner-reference-name');
-
-    // Remove previous versions' inline paints so class style8 controls the real color.
-    for (const property of [
-      'color', 'background-color', 'background-image', 'background-size', 'background-position',
-      'background-repeat', 'background-clip', '-webkit-background-clip', '-webkit-text-fill-color',
-      'text-shadow', '-webkit-text-stroke', 'filter', 'opacity', 'font-family', 'font-size',
-      'font-weight', 'font-style', 'letter-spacing', 'text-transform', 'text-decoration',
-      'text-decoration-color'
-    ]) node.style.removeProperty(property);
   }
-
   function collectOwnerBanners(container) {
     if (!container) return [];
     const result = [];
