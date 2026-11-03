@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name         Vladimir Console — Matreshka RP
+// @name         Vladimir Console — Matreshka RP (4.7.8 · forum theme integrated)
 // @namespace    Vladimir_Sudarikov.AtelierConsole
-// @version      4.8.5
+// @version      4.8.6
 // @description  Персональная консоль: цвет ника точно берётся из текста плашки Egor_Andyfy; кнопка копирования образца убрана
 // @match        https://forum.matrp.ru/*
 // @match        http://forum.matrp.ru/*
@@ -2392,15 +2392,18 @@
     const body = inPanel('va320-body');
     if (!handle || !body || handle.dataset.ready === '1') return;
     handle.dataset.ready = '1';
-    let startY = 0, startHeight = 0;
+    let startY = 0, startHeight = 0, didMove = false;
     handle.addEventListener('pointerdown', event => {
       if (event.button !== 0) return;
       event.preventDefault();
       startY = event.clientY;
       startHeight = panel.getBoundingClientRect().height;
+      didMove = false;
       panel.classList.add('va-user-resized');
       panel.style.height = startHeight + 'px';
       const move = e => {
+        if (Math.abs(e.clientY - startY) > 5) didMove = true;
+        if (!didMove) return;
         const maxHeight = Math.max(180, window.innerHeight - Math.max(8, Number(settings.top) || 8) - 8);
         const nextHeight = Math.max(180, Math.min(maxHeight, startHeight + (e.clientY - startY)));
         panel.style.height = nextHeight + 'px';
@@ -2409,6 +2412,15 @@
       const up = () => {
         document.removeEventListener('pointermove', move);
         document.removeEventListener('pointerup', up);
+        if (!didMove) {
+          settings.minimized = !settings.minimized;
+          body.hidden = settings.minimized;
+          inPanel('va320-min').textContent = settings.minimized ? '+' : '−';
+          if (settings.minimized) {
+            panel.classList.remove('va-user-resized');
+            panel.style.height = '';
+          }
+        }
         saveSettings();
       };
       document.addEventListener('pointermove', move);
