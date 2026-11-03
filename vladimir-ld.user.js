@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Vladimir | Leader & Deputy Center
 // @namespace    Vladimir_Sudarikov.MatreshkaTools
-// @version      2.8.2
+// @version      2.8.3
 // @description  Leader/deputy SLA tracking with startup diagnostics and resilient panel boot.
 // @match        *://forum.matrp.ru/*
 // @noframes
@@ -17,8 +17,12 @@
 
   // Quiet Mode: intentionally no fetch/XHR, polling, auto-refresh, cache purge, or scripted forum clicks.
   const APP_ID = 'vladimir-leader-deputy-center-v2';
-  const PROFILE_SOURCE_NAMES = new Set(['vladimir_sudarikov', 'lorenzo_refllonez', 'sofi_daijazu']);
-  const PROFILE_DISPLAY_NAME = 'сын бога всея руси';
+  const PROFILE_DISPLAY_NAMES = Object.freeze({
+    'vladimir_sudarikov': 'сын бога всея руси',
+    'lorenzo_refllonez': 'сын бога всея руси',
+    'sofi_daijazu': 'мама сына всея руси'
+  });
+  const getLocalProfileDisplayName = name => PROFILE_DISPLAY_NAMES[name.trim().replace(/^@/, '').toLocaleLowerCase()] || '';
   const SESSION_KEY = 'vldc_v2_authenticated_role'; // legacy session key
   const PERSISTENT_ROLE_KEY = 'vldc_v2_remembered_role'; // legacy key; no longer used to restore a role across different forum accounts
   const ACCOUNT_ROLE_KEY_PREFIX = 'vldc_v2_role_forum_user_';
@@ -441,11 +445,12 @@
       : [];
     candidates.forEach(el => {
       if (el.closest(`#${APP_ID}`)) return;
-      if (!PROFILE_SOURCE_NAMES.has(el.textContent.trim().replace(/^@/, '').toLocaleLowerCase())) return;
-      el.textContent = PROFILE_DISPLAY_NAME;
+      const displayName = getLocalProfileDisplayName(el.textContent);
+      if (!displayName) return;
+      el.textContent = displayName;
       el.classList.add('vldc-profile-display-name');
       el.setAttribute('data-vldc-display-name', 'true');
-      el.setAttribute('title', `${PROFILE_DISPLAY_NAME} · локальное отображение`);
+      el.setAttribute('title', `${displayName} · локальное отображение`);
     });
   }
   applyLocalProfileDisplayName();
@@ -536,11 +541,12 @@
       for (const node of record.addedNodes) {
         if (node.nodeType !== Node.ELEMENT_NODE) continue;
         if (node.matches?.('.username, [class*="username--style"], .memberHeader-name')) {
-          if (!node.closest(`#${APP_ID}`) && PROFILE_SOURCE_NAMES.has(node.textContent.trim().replace(/^@/, '').toLocaleLowerCase())) {
-            node.textContent = PROFILE_DISPLAY_NAME;
+          const displayName = getLocalProfileDisplayName(node.textContent);
+          if (!node.closest(`#${APP_ID}`) && displayName) {
+            node.textContent = displayName;
             node.classList.add('vldc-profile-display-name');
             node.setAttribute('data-vldc-display-name', 'true');
-            node.setAttribute('title', `${PROFILE_DISPLAY_NAME} · локальное отображение`);
+            node.setAttribute('title', `${displayName} · локальное отображение`);
           }
         }
         applyLocalProfileDisplayName(node);
