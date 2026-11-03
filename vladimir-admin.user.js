@@ -1,20 +1,24 @@
 // ==UserScript==
 // @name         Vladimir Console — Matreshka RP (4.7.8 · forum theme integrated)
 // @namespace    Vladimir_Sudarikov.AtelierConsole
-// @version      4.9.1
+// @version      4.9.2
 // @description  Персональная консоль: цвет ника точно берётся из текста плашки Egor_Andyfy; кнопка копирования образца убрана
 // @match        https://forum.matrp.ru/*
 // @match        http://forum.matrp.ru/*
 // @run-at       document-idle
 // @grant        none
-// @downloadURL  https://raw.githubusercontent.com/vova26art86-beep/matreshka-rp-console/main/vladimir-admin.user.js?v=4.9.0
-// @updateURL    https://raw.githubusercontent.com/vova26art86-beep/matreshka-rp-console/main/vladimir-admin.user.js?v=4.9.0
+// @downloadURL  https://raw.githubusercontent.com/vova26art86-beep/matreshka-rp-console/main/vladimir-admin.user.js?v=4.9.2
+// @updateURL    https://raw.githubusercontent.com/vova26art86-beep/matreshka-rp-console/main/vladimir-admin.user.js?v=4.9.2
 // ==/UserScript==
 
 (() => {
   'use strict';
 
   const OWNER = 'Vladimir_Sudarikov';
+  const AUTHORIZED_FORUM_USERS = Object.freeze({
+    '109764': 'vlad_copov',
+    '341059': 'vladimir_sudarikov'
+  });
   const LINKS = {
     myFollowing: 'https://forum.matrp.ru/index.php?members/vladimir_sudarikov.341059/following/',
     heartbeat: 'https://forum.matrp.ru/index.php?forums/obsie-pravila-serverov.1956/'
@@ -436,10 +440,51 @@
     inAuth('va320-login-close').addEventListener('click', closeAuth);
     inAuth('va320-password').focus();
   }
+  function currentForumUserId() {
+    const selectors = [
+      '.p-navgroup-link--user[href*="members/"]',
+      '.p-navgroup-link--user a[href*="members/"]',
+      '.p-navgroup a[href*="members/"]',
+      '.js-accountMenu a[href*="members/"]',
+      '.menu-content a[href*="members/"]',
+      '.offCanvasMenu a[href*="members/"]',
+      'a[href*="members/"][data-user-id]',
+      'a[href*="members/"][data-member-id]'
+    ];
+    for (const selector of selectors) {
+      for (const node of document.querySelectorAll(selector)) {
+        const href = node.getAttribute('href') || '';
+        const match = href.match(/members\\/[^/?#]*?\\.(\\d+)(?:[/?#]|$)/i);
+        const dataId = node.getAttribute('data-user-id') || node.getAttribute('data-member-id');
+        const id = match?.[1] || dataId;
+        if (id && AUTHORIZED_FORUM_USERS[id]) return id;
+      }
+    }
+    // Some XenForo themes expose the signed-in member only in the account menu.
+    const body = document.body?.innerText || '';
+    for (const [id, username] of Object.entries(AUTHORIZED_FORUM_USERS)) {
+      if (new RegExp('members\\\\/' + username + '\\\\.' + id + '(?:[/?#\\\\s]|$)', 'i').test(location.href)) return id;
+    }
+    return null;
+  }
+  function showForumAccountDenied() {
+    const id = currentForumUserId();
+    const recognized = id ? AUTHORIZED_FORUM_USERS[id] : null;
+    auth.innerHTML = `<div class="va-card"><div style="font-size:10px;letter-spacing:.18em;color:#c4b5fd;font-weight:bold">MATRESHKA RP · PRIVATE WORKSPACE</div><h2>Вход по форумнику</h2><p>${recognized ? 'Аккаунт распознан: ' + recognized : 'Не удалось подтвердить один из разрешённых аккаунтов на этой странице.'}</p><div class="va-message">${recognized ? 'Доступ разрешён.' : 'Войдите на форум под одним из разрешённых аккаунтов: vlad_copov (ID 109764) или vladimir_sudarikov (ID 341059), затем обновите страницу.'}</div><button class="va-primary" id="va320-account-retry" type="button">Проверить аккаунт</button><button class="va-link" id="va320-account-close" type="button">Закрыть</button><div class="va-foot">Доступ проверяется по текущему аккаунту XenForo; пароль панели не требуется.</div></div>`;
+    auth.classList.add('va-show');
+    inAuth('va320-account-retry').addEventListener('click', () => {
+      if (currentForumUserId()) { closeAuth(); showPanel(); }
+      else { closeAuth(); showForumAccountDenied(); }
+    });
+    inAuth('va320-account-close').addEventListener('click', closeAuth);
+  }
   function launch() {
     if (panel.classList.contains('va-show')) { panel.classList.remove('va-show'); return; }
-    if (hasSession()) { showPanel(); return; }
-    if (safeGet(KEYS.password)) showLogin(); else showSetup();
+    const forumUserId = currentForumUserId();
+    if (!forumUserId) { showForumAccountDenied(); return; }
+    // Access is tied to the currently signed-in forum account, not a shared browser password.
+    clearSession();
+    showPanel();
   }
   function copyText(value) {
     if (!value) return setStatus('Нет данных для копирования.');
@@ -2585,7 +2630,7 @@
     }, 250);
   });
   if (document.body) ownerObserver.observe(document.body, { childList: true, subtree: true });
-  if (hasSession()) showPanel();
+  if (currentForumUserId()) showPanel();
   try { sessionStorage.removeItem('vladimir_atelier_444_reply_draft'); } catch {}
   renderSlaFeed([...slaRows.values()], slaRows.size ? 'Восстановлены сохранённые результаты прошлых проверок. Просрочки показываются сверху.' : 'Открой раздел жалоб, Госс, Гетто или заявок — сроки появятся при прокрутке.');
   // Quiet mode: no automatic network scans on page load or in the background.
