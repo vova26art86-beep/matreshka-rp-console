@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Vladimir | Leader & Deputy Center
 // @namespace    Vladimir_Sudarikov.MatreshkaTools
-// @version      2.7.4
+// @version      2.7.5
 // @description  Leader/deputy SLA tracking with startup diagnostics and resilient panel boot.
 // @match        *://forum.matrp.ru/*
 // @noframes
@@ -374,7 +374,8 @@
   function savePanelLayout() {
     try { localStorage.setItem(PANEL_LAYOUT_KEY, JSON.stringify({ top: panelTop, left: panelLeft, width: panelWidth, height: panelHeight })); } catch {}
   }
-  window.addEventListener('pagehide', () => savePanelLayout(), { capture: true });
+  window.addEventListener('pagehide', () => { savePanelLayout(); }, { capture: true });
+  window.addEventListener('beforeunload', () => { savePanelLayout(); }, { capture: true });
   function applyPanelLayout(persist = true) {
     panelWidth = clamp(panelWidth, 280, Math.max(280, window.innerWidth - 16));
     panelHeight = clamp(panelHeight, 220, Math.max(220, window.innerHeight - 8));
@@ -1470,7 +1471,11 @@
     @media(max-width:650px){.p-header-inner{min-height:62px}#${WIDGET_ID}{right:10px;bottom:10px}#${WIDGET_ID} .ma-toggle{width:42px;height:42px}}
     @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}#${WIDGET_ID} *{transition:none!important}}
   `;
-  document.head.appendChild(css);
+  function attachStyle() {
+    const target = document.head || document.documentElement;
+    if (target && !document.getElementById(STYLE_ID)) target.appendChild(css);
+  }
+  attachStyle();
 
   function applyTheme(name) {
     const t = THEMES[name];
@@ -1519,5 +1524,10 @@
   applyTheme(current);
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mountWidget, { once: true });
   else mountWidget();
-  new MutationObserver(() => { if (!document.getElementById(WIDGET_ID)) mountWidget(); }).observe(document.documentElement, { childList: true, subtree: true });
+  const themeRepairObserver = new MutationObserver(() => {
+    attachStyle();
+    if (document.body && !document.getElementById(WIDGET_ID)) mountWidget();
+    if (document.getElementById(STYLE_ID) && document.getElementById(WIDGET_ID)) themeRepairObserver.disconnect();
+  });
+  themeRepairObserver.observe(document.documentElement || document, { childList: true, subtree: true });
 })();
