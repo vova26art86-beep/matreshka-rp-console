@@ -460,11 +460,6 @@
         if (id && AUTHORIZED_FORUM_USERS[id]) return id;
       }
     }
-    // Some XenForo themes expose the signed-in member only in the account menu.
-    const body = document.body?.innerText || '';
-    for (const [id, username] of Object.entries(AUTHORIZED_FORUM_USERS)) {
-      if (new RegExp('members\\\\/' + username + '\\\\.' + id + '(?:[/?#\\\\s]|$)', 'i').test(location.href)) return id;
-    }
     return null;
   }
   function showForumAccountDenied() {
