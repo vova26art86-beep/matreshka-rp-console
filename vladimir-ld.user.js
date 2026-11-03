@@ -1,13 +1,13 @@
 // ==UserScript==
 // @name         Vladimir | Leader & Deputy Center
 // @namespace    Vladimir_Sudarikov.MatreshkaTools
-// @version      2.7.7
+// @version      2.7.8
 // @description  Leader/deputy SLA tracking with startup diagnostics and resilient panel boot.
 // @match        *://forum.matrp.ru/*
 // @noframes
 // @run-at       document-idle
 // @grant        none
-// @downloadURL  https://raw.githubusercontent.com/vova26art86-beep/matreshka-rp-console/main/vladimir-ld.user.js?v=2.7.7
+// @downloadURL  https://raw.githubusercontent.com/vova26art86-beep/matreshka-rp-console/main/vladimir-ld.user.js?v=2.7.8
 // @updateURL    https://raw.githubusercontent.com/vova26art86-beep/matreshka-rp-console/main/vladimir-ld.user.js?v=2.7.7
 // ==/UserScript==
 
@@ -17,7 +17,7 @@
 
   // Quiet Mode: intentionally no fetch/XHR, polling, auto-refresh, cache purge, or scripted forum clicks.
   const APP_ID = 'vladimir-leader-deputy-center-v2';
-  const PROFILE_SOURCE_NAME = 'Vladimir_Sudarikov';
+  const PROFILE_SOURCE_NAMES = new Set(['Vladimir_Sudarikov', 'Lorenzo_Refllonez']);
   const PROFILE_DISPLAY_NAME = 'сын бога всея руси';
   const SESSION_KEY = 'vldc_v2_authenticated_role'; // legacy session key
   const PERSISTENT_ROLE_KEY = 'vldc_v2_remembered_role'; // legacy key; no longer used to restore a role across different forum accounts
@@ -441,7 +441,7 @@
       : [];
     candidates.forEach(el => {
       if (el.closest(`#${APP_ID}`)) return;
-      if (el.textContent.trim() !== PROFILE_SOURCE_NAME) return;
+      if (!PROFILE_SOURCE_NAMES.has(el.textContent.trim())) return;
       el.textContent = PROFILE_DISPLAY_NAME;
       el.classList.add('vldc-profile-display-name');
       el.setAttribute('data-vldc-display-name', 'true');
@@ -536,7 +536,7 @@
       for (const node of record.addedNodes) {
         if (node.nodeType !== Node.ELEMENT_NODE) continue;
         if (node.matches?.('.username, [class*="username--style"], .memberHeader-name')) {
-          if (!node.closest(`#${APP_ID}`) && node.textContent.trim() === PROFILE_SOURCE_NAME) {
+          if (!node.closest(`#${APP_ID}`) && PROFILE_SOURCE_NAMES.has(node.textContent.trim())) {
             node.textContent = PROFILE_DISPLAY_NAME;
             node.classList.add('vldc-profile-display-name');
             node.setAttribute('data-vldc-display-name', 'true');
