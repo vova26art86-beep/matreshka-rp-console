@@ -47,7 +47,7 @@
     '281259': 'deputy', // angel_rogalev
     '594678': 'deputy', // gleb_volckov
     '587600': 'deputy', // mihail-zel
-    '532291': 'deputy', // konon_petrov
+    '532291': 'leader', // konon_petrov — лидер МЧС
     '742975': 'deputy', // romka_kapterov
     '740394': 'deputy', // romka_kaiashnikov
     '65921': 'deputy', // timka_legendary (Timka_Escobar, Army deputy)
@@ -485,7 +485,7 @@
     '281259': { role: 'deputy', label: 'ЗАМЕСТИТЕЛЬ · СГБ' },
     '594678': { role: 'deputy', label: 'ЗАМЕСТИТЕЛЬ · СГБ' },
     '587600': { role: 'deputy', label: 'ЗАМЕСТИТЕЛЬ · СГБ' },
-    '532291': { role: 'deputy', label: 'ЗАМЕСТИТЕЛЬ · МЧС' },
+    '532291': { role: 'leader', label: 'ЛИДЕР · МЧС' },
     '742975': { role: 'deputy', label: 'ЗАМЕСТИТЕЛЬ · МЧС' },
     '740394': { role: 'deputy', label: 'ЗАМЕСТИТЕЛЬ · МЧС' },
     '691279': { role: 'deputy', label: 'ЗАМЕСТИТЕЛЬ · ОПГ «ОФФНИКИ»' },
