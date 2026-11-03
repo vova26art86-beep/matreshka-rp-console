@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Vladimir | Leader & Deputy Center
 // @namespace    Vladimir_Sudarikov.MatreshkaTools
-// @version      2.9.23
+// @version      2.9.24
 // @description  Leader/deputy SLA tracking with native forum username styling.
 // @match        *://forum.matrp.ru/*
 // @noframes
@@ -502,7 +502,9 @@
 
   // Copied from the admin console's styleOwnerName logic.
   function styleLdOwnerUsername(node, userId) {
-    if (!node || userId !== '341059' || (node.textContent || '').trim() !== 'Vladimir_Sudarikov') return;
+    if (!node || userId !== '341059') return;
+    // Restore the original forum nickname on the owner's account, regardless of stale local aliases.
+    if ((node.textContent || '').trim() !== 'Vladimir_Sudarikov') node.textContent = 'Vladimir_Sudarikov';
 
     for (const cls of [...node.classList]) {
       if (cls.startsWith('username--') || cls.startsWith('va-owner-reference-')) {
