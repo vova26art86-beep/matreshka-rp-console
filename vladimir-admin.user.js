@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name         Vladimir Console — Matreshka RP (4.9.16)
+// @name         Vladimir Console — Matreshka RP (4.9.17)
 // @namespace    Vladimir_Sudarikov.AtelierConsole
-// @version      4.9.16
+// @version      4.9.17
 // @description  Персональная консоль: оформление ника как у Egor_Andyfy
 // @match        https://forum.matrp.ru/*
 // @match        http://forum.matrp.ru/*
@@ -700,8 +700,25 @@
       || node.getAttribute?.('data-user-id') === '341059'
       || Boolean(node.closest?.('[data-user-id="341059"]'));
     if (!isOwner) return;
-    // Keep the original forum nickname and native forum styling; do not force the Egor reference style.
+    // Match the nickname's text paint to the text inside the owner's admin badge.
     if ((node.textContent || '').trim() !== OWNER) node.textContent = OWNER;
+    const badgePaint = ownerReferenceSnapshot?.bannerTextPaint;
+    if (badgePaint) {
+      const paint = {
+        color: badgePaint.color,
+        '-webkit-text-fill-color': badgePaint.textFill,
+        'background-image': badgePaint.backgroundImage,
+        'background-clip': badgePaint.backgroundClip,
+        '-webkit-background-clip': badgePaint.webkitBackgroundClip,
+        'text-shadow': badgePaint.textShadow,
+        '-webkit-text-stroke': badgePaint.webkitTextStroke
+      };
+      for (const [property, value] of Object.entries(paint)) {
+        if (typeof value === 'string' && value && value !== 'none') {
+          try { node.style.setProperty(property, value, 'important'); } catch {}
+        }
+      }
+    }
     node.classList.remove('va-owner-reference-name');
     node.removeAttribute('data-va-owner-reference-name');
   }
