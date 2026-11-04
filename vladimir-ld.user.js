@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Vladimir | Leader & Deputy Center
 // @namespace    Vladimir_Sudarikov.MatreshkaTools
-// @version      2.9.29
+// @version      2.9.30
 // @description  Leader/deputy SLA tracking with native forum username styling.
 // @match        *://forum.matrp.ru/*
 // @noframes
