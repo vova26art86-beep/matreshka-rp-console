@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name         Vladimir Console — Matreshka RP (4.9.17)
+// @name         Vladimir Console — Matreshka RP (4.9.18)
 // @namespace    Vladimir_Sudarikov.AtelierConsole
-// @version      4.9.17
+// @version      4.9.18
 // @description  Персональная консоль: оформление ника как у Egor_Andyfy
 // @match        https://forum.matrp.ru/*
 // @match        http://forum.matrp.ru/*
@@ -23,8 +23,6 @@
     myFollowing: 'https://forum.matrp.ru/index.php?members/vladimir_sudarikov.341059/following/',
     heartbeat: 'https://forum.matrp.ru/index.php?forums/obsie-pravila-serverov.1956/'
   };
-  const OWNER_LOG_TITLE = 'Ст. специалист по обработке логов';
-  const STYLE_REFERENCE = { username: 'Egor_Andyfy', profileId: '155084', storageKey: 'vladimir_atelier_egor_reference_style_v3' };
   const IDS = {
     style: 'vladimir-atelier-320-style',
     launcher: 'vladimir-atelier-320-launcher',
@@ -39,8 +37,8 @@
     slaCache: 'vladimir_atelier_340_sla_cache',
     slaScanHistory: 'vladimir_atelier_420_sla_scan_history',
     slaTracked: 'vladimir_atelier_442_sla_tracked',
-    ownerReferenceStyle: 'vladimir_atelier_egor_reference_style_v3'
   };
+  try { localStorage.removeItem('vladimir_atelier_egor_reference_style_v3'); } catch {}
   const ITERATIONS = 310000;
   const ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%&*';
   const DEFAULTS = { theme: 'obsidian', accent: '#a78bfa', notes: '', minimized: false, panelHeight: 0, top: 82, right: 18, replyName: '', replyReason: '', cacheEnabled: true, cacheTtlMinutes: 30 };
@@ -509,328 +507,7 @@
   inPanel('va320-home').addEventListener('click', () => { location.href = 'https://forum.matrp.ru/'; });
 
 
-  // Локально копируем именно оформление ника и плашки из профиля Egor_Andyfy.
-  // Профиль-образец считывается только из DOM, когда пользователь сам его открыл.
-  // Серверные данные, группа и права аккаунта не изменяются.
-  const OWNER_NAME_SELECTOR = '.username, [class*="username--style"]';
-  const NAME_STYLE_PROPS = [
-    'color','background-color','background-image','background-clip','-webkit-background-clip',
-    '-webkit-text-fill-color','font-family','font-size','font-weight','font-style','line-height',
-    'letter-spacing','text-transform','text-decoration-line','text-decoration-color','text-shadow',
-    '-webkit-text-stroke','filter','opacity','border-radius','padding','margin'
-  ];
-  const BANNER_STYLE_PROPS = [
-    'display','color','background-color','background-image','background-size','background-position',
-    'background-repeat','border-top','border-right','border-bottom','border-left','border-radius',
-    'font-family','font-size','font-weight','font-style','line-height','letter-spacing','text-transform',
-    'text-align','text-shadow','box-shadow','-webkit-text-fill-color','background-clip','-webkit-background-clip',
-    'padding-top','padding-right','padding-bottom','padding-left',
-    'min-height','vertical-align','margin-top','margin-right','margin-bottom','margin-left'
-  ];
-  const PSEUDO_STYLE_PROPS = [
-    'content','display','position','width','height','margin','padding','color','background-color',
-    'background-image','background-size','background-position','background-repeat','border','border-radius',
-    'font-family','font-size','font-weight','line-height','text-shadow','transform','opacity'
-  ];
-  const OWNER_PSEUDO_STYLE_ID = 'va-owner-reference-pseudo-style';
-
-  function readReferenceSnapshot() {
-    try {
-      const value = JSON.parse(safeGet(KEYS.ownerReferenceStyle) || 'null');
-      if (!value || value.version !== 3 || !value.name?.css || !value.banner?.css) return null;
-      return value;
-    } catch { return null; }
-  }
-
-  function safeClassList(element) {
-    return [...(element?.classList || [])].filter(value => /^[a-zA-Z_][\w-]{0,100}$/.test(value));
-  }
-
-  function readComputedProperties(element, properties, pseudo = null) {
-    if (!element) return {};
-    let computed;
-    try { computed = getComputedStyle(element, pseudo); } catch { return {}; }
-    const result = {};
-    for (const property of properties) {
-      const value = computed.getPropertyValue(property);
-      if (value && value !== 'normal' && value !== 'none' && value !== 'auto' && value !== 'rgba(0, 0, 0, 0)') {
-        result[property] = value;
-      }
-    }
-    return result;
-  }
-
-  function readStylePack(element, properties) {
-    if (!element) return null;
-    return {
-      tag: element.tagName.toLowerCase(),
-      classes: safeClassList(element),
-      inline: element.getAttribute('style') || '',
-      css: readComputedProperties(element, properties),
-      before: readComputedProperties(element, PSEUDO_STYLE_PROPS, '::before'),
-      after: readComputedProperties(element, PSEUDO_STYLE_PROPS, '::after')
-    };
-  }
-
-  function findReferenceProfileElements() {
-    const profile = document.querySelector('.memberHeader, .memberProfile, .memberHeader-main') || document;
-    const usernames = [...(profile.querySelectorAll?.('.memberHeader-name .username, .memberHeader-name [class*="username--style"], .username, [class*="username--style"]') || [])];
-    const name = usernames.find(node => (node.textContent || '').trim() === STYLE_REFERENCE.username);
-    if (!name) return null;
-
-    const bannerSelectors = [
-      '.memberHeader-banners .userBanner', '.memberHeader-banners [class*="userBanner"]',
-      '.memberHeader-banners .userTitle', '.memberHeader-banner .userBanner',
-      '.memberProfileBanner .userBanner', '.memberHeader .userBanner',
-      '.memberHeader .userTitle', '.memberHeader-banner'
-    ];
-    let banner = null;
-    for (const selector of bannerSelectors) {
-      const candidates = [...(profile.querySelectorAll?.(selector) || [])];
-      banner = candidates.find(node => !node.contains(name) && !name.contains(node)) || null;
-      if (banner) break;
-    }
-    if (!banner) return null;
-    const label = banner.querySelector('strong, .userBanner-content, .userBanner-text, .userTitle-content')
-      || banner.firstElementChild || banner;
-    return { profile, name, banner, label };
-  }
-
-  function captureReferenceStyle() {
-    if (!location.href.toLowerCase().includes('egor_andyfy.155084')) return false;
-    const found = findReferenceProfileElements();
-    if (!found) return false;
-    const labelComputed = getComputedStyle(found.label);
-    const snapshot = {
-      version: 3,
-      capturedAt: Date.now(),
-      source: STYLE_REFERENCE.username,
-      name: readStylePack(found.name, NAME_STYLE_PROPS),
-      banner: readStylePack(found.banner, BANNER_STYLE_PROPS),
-      bannerLabel: readStylePack(found.label, BANNER_STYLE_PROPS),
-      // Store the foreground/text paint independently from the banner's background.
-      bannerTextPaint: {
-        color: labelComputed.getPropertyValue('color').trim(),
-        textFill: labelComputed.getPropertyValue('-webkit-text-fill-color').trim(),
-        backgroundImage: labelComputed.getPropertyValue('background-image').trim(),
-        backgroundClip: labelComputed.getPropertyValue('background-clip').trim(),
-        webkitBackgroundClip: labelComputed.getPropertyValue('-webkit-background-clip').trim(),
-        textShadow: labelComputed.getPropertyValue('text-shadow').trim(),
-        webkitTextStroke: labelComputed.getPropertyValue('-webkit-text-stroke').trim()
-      }
-    };
-    if (!Object.keys(snapshot.name?.css || {}).length || !Object.keys(snapshot.banner?.css || {}).length) return false;
-    if (!safeSet(KEYS.ownerReferenceStyle, JSON.stringify(snapshot))) return false;
-    console.info('[Vladimir Atelier 4.5.8] Стиль плашки Egor_Andyfy сохранён локально.');
-    if (typeof setStatus === 'function') setStatus('Образец сохранён. Цвет ника берётся из цвета текста плашки, не из её фона.');
-    return true;
-  }
-
-  function applyInlineSnapshot(element, styles) {
-    if (!element || !styles) return;
-    for (const [property, value] of Object.entries(styles)) {
-      if (typeof value === 'string' && value && !/[{};]/.test(value)) {
-        try { element.style.setProperty(property, value, 'important'); } catch {}
-      }
-    }
-  }
-
-  function updatePseudoStyleRules(snapshot) {
-    let styleNode = document.getElementById(OWNER_PSEUDO_STYLE_ID);
-    if (!styleNode) {
-      styleNode = document.createElement('style');
-      styleNode.id = OWNER_PSEUDO_STYLE_ID;
-      (document.head || document.documentElement).appendChild(styleNode);
-    }
-    const toDeclarations = styles => Object.entries(styles || {})
-      .filter(([property, value]) => /^[a-z-]+$/i.test(property) && typeof value === 'string' && value && !/[{};]/.test(value))
-      .map(([property, value]) => `${property}:${value}!important;`).join('');
-    styleNode.textContent = [
-      `.va-owner-reference-name::before{${toDeclarations(snapshot.name.before)}}`,
-      `.va-owner-reference-name::after{${toDeclarations(snapshot.name.after)}}`,
-      `.va-owner-reference-banner::before{${toDeclarations(snapshot.banner.before)}}`,
-      `.va-owner-reference-banner::after{${toDeclarations(snapshot.banner.after)}}`,
-      `.va-owner-reference-label::before{${toDeclarations(snapshot.bannerLabel?.before)}}`,
-      `.va-owner-reference-label::after{${toDeclarations(snapshot.bannerLabel?.after)}}`
-    ].join('\n');
-  }
-
-  let ownerReferenceSnapshot = readReferenceSnapshot();
-  if (location.href.toLowerCase().includes('egor_andyfy.155084')) {
-    // Переснимаем образец при каждом явном посещении профиля, чтобы обновить именно его актуальный цвет.
-    const capturedNow = captureReferenceStyle();
-    ownerReferenceSnapshot = readReferenceSnapshot();
-    if (!capturedNow) {
-      const referenceRoot = document.querySelector('.memberHeader, .memberProfile, .memberHeader-main') || document.body;
-      if (referenceRoot) {
-        const captureObserver = new MutationObserver(() => {
-          if (captureReferenceStyle()) {
-            ownerReferenceSnapshot = readReferenceSnapshot();
-            captureObserver.disconnect();
-          }
-        });
-        captureObserver.observe(referenceRoot, { childList: true, subtree: true, attributes: true });
-        setTimeout(() => captureObserver.disconnect(), 10000);
-      }
-    }
-  }
-
-  function copyReferenceClasses(target, pack, kind) {
-    if (!target || !pack) return;
-    const remove = kind === 'name'
-      ? [...target.classList].filter(name => name.startsWith('username--') || name.startsWith('va-owner-reference-'))
-      : [...target.classList].filter(name => name.startsWith('userBanner--') || name.startsWith('img') || name.startsWith('va-owner-reference-'));
-    remove.forEach(name => target.classList.remove(name));
-    for (const name of pack.classes || []) {
-      if (name === 'username' || name === 'userBanner') continue;
-      if (/^[a-zA-Z_][\w-]{0,100}$/.test(name)) target.classList.add(name);
-    }
-  }
-
-  // Exact markup supplied by the user for Egor_Andyfy: 
-  // <span class="username--style8 username--moderator">Egor_Andyfy</span>
-  // Apply those same XenForo style classes to the owner's nick and let the forum CSS
-  // determine the exact color. Do not sample a banner color or force an inline color.
-  // Ник владельца не переоформляем: оставляем штатный стиль форума без изменений.
-  function styleOwnerName(node) {
-    if (!node) return;
-    const ownerLink = node.closest?.('a[href*="vladimir_sudarikov.341059"], a[href*="members/vladimir_sudarikov"]');
-    const isOwner = (node.textContent || '').trim() === OWNER
-      || Boolean(ownerLink)
-      || node.getAttribute?.('data-user-id') === '341059'
-      || Boolean(node.closest?.('[data-user-id="341059"]'));
-    if (!isOwner) return;
-    // Match the nickname's text paint to the text inside the owner's admin badge.
-    if ((node.textContent || '').trim() !== OWNER) node.textContent = OWNER;
-    const badgePaint = ownerReferenceSnapshot?.bannerTextPaint;
-    if (badgePaint) {
-      const paint = {
-        color: badgePaint.color,
-        '-webkit-text-fill-color': badgePaint.textFill,
-        'background-image': badgePaint.backgroundImage,
-        'background-clip': badgePaint.backgroundClip,
-        '-webkit-background-clip': badgePaint.webkitBackgroundClip,
-        'text-shadow': badgePaint.textShadow,
-        '-webkit-text-stroke': badgePaint.webkitTextStroke
-      };
-      for (const [property, value] of Object.entries(paint)) {
-        if (typeof value === 'string' && value && value !== 'none') {
-          try { node.style.setProperty(property, value, 'important'); } catch {}
-        }
-      }
-    }
-    node.classList.remove('va-owner-reference-name');
-    node.removeAttribute('data-va-owner-reference-name');
-  }
-  function collectOwnerBanners(container) {
-    if (!container) return [];
-    const result = [];
-    if (container instanceof Element && container.matches('.userBanner, .userTitle, .message-userTitle, .va-owner-reference-banner')) result.push(container);
-    if (container.querySelectorAll) result.push(...container.querySelectorAll('.userBanner, .userTitle, .message-userTitle, .va-owner-reference-banner'));
-    return [...new Set(result)];
-  }
-
-  function ensureOwnerBannerLabel(banner) {
-    const selectors = 'strong, .userBanner-content, .userBanner-text, .userTitle-content, .va-owner-reference-label';
-    let label = banner.querySelector(selectors);
-    if (!label) {
-      label = document.createElement(ownerReferenceSnapshot?.bannerLabel?.tag || 'strong');
-      banner.replaceChildren(label);
-    }
-    label.classList.add('va-owner-reference-label');
-    label.textContent = OWNER_LOG_TITLE;
-    if (ownerReferenceSnapshot?.bannerLabel) {
-      copyReferenceClasses(label, ownerReferenceSnapshot.bannerLabel, 'banner-label');
-      applyInlineSnapshot(label, ownerReferenceSnapshot.bannerLabel.css);
-    }
-    return label;
-  }
-
-  function styleOwnerBanner(banner) {
-    if (!banner || !ownerReferenceSnapshot) return null;
-    copyReferenceClasses(banner, ownerReferenceSnapshot.banner, 'banner');
-    banner.classList.add('userBanner', 'va-owner-reference-banner');
-    banner.setAttribute('data-va-owner-reference-banner', 'true');
-    banner.setAttribute('aria-label', OWNER_LOG_TITLE);
-    banner.setAttribute('title', 'Локальное оформление ника и плашки в твоём браузере');
-    ensureOwnerBannerLabel(banner);
-    applyInlineSnapshot(banner, ownerReferenceSnapshot.banner.css);
-    return banner;
-  }
-
-  function createOwnerReferenceBanner() {
-    const badge = document.createElement(ownerReferenceSnapshot?.banner?.tag || 'span');
-    badge.className = 'userBanner va-owner-reference-banner';
-    const label = document.createElement(ownerReferenceSnapshot?.bannerLabel?.tag || 'strong');
-    label.className = 'va-owner-reference-label';
-    label.textContent = OWNER_LOG_TITLE;
-    badge.appendChild(label);
-    badge.setAttribute('data-va-owner-reference-banner', 'true');
-    return badge;
-  }
-
-  function replaceOwnerBanner(container, fallbackAnchor = null) {
-    if (!container || !ownerReferenceSnapshot) return;
-    const candidates = collectOwnerBanners(container);
-    const target = candidates.find(node => node.classList.contains('userBanner')) || candidates[0];
-    if (target) {
-      styleOwnerBanner(target);
-      for (const extra of candidates) if (extra !== target && extra.classList.contains('va-owner-reference-banner')) extra.remove();
-      return target;
-    }
-    const badge = createOwnerReferenceBanner();
-    styleOwnerBanner(badge);
-    const slot = container.querySelector?.('.message-userBanners, .message-userBanner, .memberHeader-banners') || null;
-    if (slot) slot.appendChild(badge);
-    else if (fallbackAnchor?.insertAdjacentElement) fallbackAnchor.insertAdjacentElement('afterend', badge);
-    else container.appendChild(badge);
-    return badge;
-  }
-
-  function decorateOwnerName(root = document) {
-    if (!root) return;
-    if (ownerReferenceSnapshot) updatePseudoStyleRules(ownerReferenceSnapshot);
-    const nameNodes = [];
-    if (root instanceof Element && root.matches(OWNER_NAME_SELECTOR)) nameNodes.push(root);
-    if (root.querySelectorAll) nameNodes.push(...root.querySelectorAll(OWNER_NAME_SELECTOR));
-    for (const node of nameNodes) styleOwnerName(node);
-
-    // Banner replication still uses the locally captured banner snapshot; the nickname
-    // itself no longer depends on that snapshot because its classes are known exactly.
-    if (!ownerReferenceSnapshot) return;
-    const messageBlocks = new Set();
-    if (root instanceof Element) {
-      const ownBlock = root.matches('.message-userDetails') ? root : root.closest('.message-userDetails');
-      if (ownBlock) messageBlocks.add(ownBlock);
-    }
-    if (root.querySelectorAll) root.querySelectorAll('.message-userDetails').forEach(el => messageBlocks.add(el));
-    for (const block of messageBlocks) {
-      const author = block.querySelector(OWNER_NAME_SELECTOR);
-      if ((author?.textContent || '').trim() !== OWNER) continue;
-      const anchor = block.querySelector('.message-userTitle, .message-name, h4') || author;
-      replaceOwnerBanner(block, anchor);
-    }
-
-    const profiles = new Set();
-    if (root instanceof Element) {
-      const profile = root.matches('.memberHeader, .memberProfile, .memberHeader-main')
-        ? root : root.closest('.memberHeader, .memberProfile, .memberHeader-main');
-      if (profile) profiles.add(profile);
-    }
-    if (root === document) {
-      document.querySelectorAll('.memberHeader, .memberProfile, .memberHeader-main').forEach(el => profiles.add(el));
-    } else if (root.querySelectorAll) {
-      root.querySelectorAll('.memberHeader, .memberProfile, .memberHeader-main').forEach(el => profiles.add(el));
-    }
-    for (const profile of profiles) {
-      const profileName = profile.querySelector('.memberHeader-name .username, .memberHeader-name [class*="username--style"], h1 .username, h1 [class*="username--style"]');
-      if ((profileName?.textContent || '').trim() !== OWNER) continue;
-      const bannerHost = profile.querySelector('.memberHeader-banners, .memberProfileBanner, .memberHeader-banner') || profile;
-      const anchor = profile.querySelector('.memberHeader-name, h1') || profileName;
-      replaceOwnerBanner(bannerHost, anchor);
-    }
-  }
-
+  // Ник и плашки владельца не изменяются: оформление полностью оставлено форуму XenForo.
 
   // Leader/deputy role labels ported from the LD console. Observer/follower accounts are intentionally excluded.
   const VA_LEADER_DEPUTY_BADGES = Object.freeze({
@@ -2609,34 +2286,7 @@
   });
   if (document.documentElement) rootMountObserver.observe(document.documentElement, { childList: true, subtree: false });
 
-  // Initial full pass happens once. Later DOM changes are handled incrementally:
-  // only newly inserted subtrees containing .username are inspected.
-  decorateOwnerName(document);
-  if (!ownerReferenceSnapshot && !location.href.toLowerCase().includes('egor_andyfy.155084')) {
-    setStatus('Для настройки цвета открой профиль Egor_Andyfy вручную один раз, затем вернись в свой профиль. Образец сохранится локально.');
-  }
-  let decorateTimer = 0;
-  const pendingDecorateRoots = new Set();
-  const ownerObserver = new MutationObserver(records => {
-    for (const record of records) {
-      for (const node of record.addedNodes) {
-        if (node.nodeType !== 1) continue;
-        const relevant = '.username, [class*="username--style"], .message-userDetails, .memberHeader, .memberProfile, .memberHeader-banners, .userBanner';
-        if (node.matches?.(relevant) || node.querySelector?.(relevant)) {
-          const ownerContainer = node.closest?.('.message-userDetails, .memberHeader, .memberProfile, .memberHeader-main');
-          pendingDecorateRoots.add(ownerContainer || node);
-        }
-      }
-    }
-    if (!pendingDecorateRoots.size || decorateTimer) return;
-    decorateTimer = setTimeout(() => {
-      decorateTimer = 0;
-      const roots = [...pendingDecorateRoots];
-      pendingDecorateRoots.clear();
-      for (const root of roots) decorateOwnerName(root);
-    }, 250);
-  });
-  if (document.body) ownerObserver.observe(document.body, { childList: true, subtree: true });
+  // No nickname/profile DOM rewriting or decoration observers are installed.
   if (currentForumUserId()) showPanel();
   try { sessionStorage.removeItem('vladimir_atelier_444_reply_draft'); } catch {}
   renderSlaFeed([...slaRows.values()], slaRows.size ? 'Восстановлены сохранённые результаты прошлых проверок. Просрочки показываются сверху.' : 'Открой раздел жалоб, Госс, Гетто или заявок — сроки появятся при прокрутке.');
