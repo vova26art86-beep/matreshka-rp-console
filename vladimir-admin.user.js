@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Vladimir Console — Matreshka RP (4.9.19)
 // @namespace    Vladimir_Sudarikov.AtelierConsole
-// @version      4.9.19
+// @version      4.9.20
 // @description  Персональная консоль: оформление ника как у Egor_Andyfy
 // @match        https://forum.matrp.ru/*
 // @match        http://forum.matrp.ru/*
@@ -13,6 +13,7 @@
 
 (() => {
   'use strict';
+  try {
 
   const OWNER = 'Vladimir_Sudarikov';
   const AUTHORIZED_FORUM_USERS = Object.freeze({
@@ -2343,6 +2344,19 @@
       }
     }
   }, SLA_REFRESH_MS);
+  } catch (error) {
+    console.error('[Vladimir Admin Console] Ошибка запуска панели:', error);
+    const showError = () => {
+      if (document.getElementById('va-startup-error')) return;
+      const box = document.createElement('div');
+      box.id = 'va-startup-error';
+      box.textContent = 'Vladimir Admin: ошибка запуска — ' + (error && error.message ? error.message : String(error));
+      box.style.cssText = 'position:fixed;right:12px;bottom:12px;z-index:2147483647;max-width:420px;padding:12px 14px;border:2px solid #f87171;border-radius:10px;background:#450a0a;color:#fff;font:13px/1.4 Arial,sans-serif;box-shadow:0 4px 18px #0008;overflow-wrap:anywhere';
+      (document.body || document.documentElement).appendChild(box);
+    };
+    if (document.body || document.documentElement) showError();
+    else document.addEventListener('DOMContentLoaded', showError, { once: true });
+  }
 })();
 
 // === Matreshka RP Forum Atelier Theme (integrated) ===
