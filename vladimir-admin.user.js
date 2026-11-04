@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Vladimir Console — Matreshka RP (4.9.19)
 // @namespace    Vladimir_Sudarikov.AtelierConsole
-// @version      4.9.20
+// @version      4.9.21
 // @description  Персональная консоль: оформление ника как у Egor_Andyfy
 // @match        https://forum.matrp.ru/*
 // @match        http://forum.matrp.ru/*
@@ -254,7 +254,7 @@
         <div class="va-status" id="va340-prefix-status">Одобрено / Отказ / Решено / Закрыто — тема закрывается; Открыто — тема открывается. «На рассмотрении», «Информация» и «Важно» не меняют состояние темы.</div>
         <div class="va-local-note">Применение возможно только при наличии на форуме прав на изменение префикса. На странице списка сначала открой нужную тему.</div>
       </section>
-      <section>
+      <section style="display:none!important" aria-hidden="true">
         <div class="va-label">Контроль сроков · все разделы <span class="va-chip">24 ЧАСА / ЛИМИТ 80 Ч</span></div>
         <div class="va-local-note" id="va340-context-status">Мониторинг готов: проверяет выбранное число тем; темы отслеживаются до 30 дней после срока.</div>
         <div class="va-row" style="margin-top:7px"><button class="va-small" id="va340-scan">⟳ Проверить список</button><button class="va-small" id="va340-current">◷ Проверить тему</button></div>
@@ -1570,14 +1570,27 @@
 
   async function revealThreadTools() {
     if (['close','open','pin','unpin'].some(action => getThreadActionNodes(action).length)) return true;
+    // First open the topic's own three-dot / tools menu. Avoid unrelated menus.
     const selectors = [
       '.js-threadTools .menuTrigger', '.js-threadTools [data-xf-click~="menu"]',
       '.threadTools .menuTrigger', '.threadTools [data-xf-click~="menu"]',
-      '.thread-tools .menuTrigger', '.block-outer-opposite .menuTrigger',
-      '.block-outer-opposite [data-xf-click~="menu"]'
+      '.thread-tools .menuTrigger', '.thread-tools [data-xf-click~="menu"]',
+      '.p-title-pageAction .menuTrigger', '.p-title-pageAction [data-xf-click~="menu"]',
+      '.block-outer-opposite .menuTrigger', '.block-outer-opposite [data-xf-click~="menu"]',
+      '.p-title-pageAction button[aria-haspopup="true"]',
+      '.p-title-pageAction a[aria-haspopup="true"]',
+      '.block-outer-opposite button[aria-haspopup="true"]',
+      '.block-outer-opposite a[aria-haspopup="true"]'
     ];
-    const toggles = [...new Set(selectors.flatMap(selector => [...document.querySelectorAll(selector)]))].filter(isVisible);
-    for (const toggle of toggles.slice(0, 4)) {
+    const toggles = [...new Set(selectors.flatMap(selector => [...document.querySelectorAll(selector)]))]
+      .filter(node => {
+        if (!isVisible(node) || node.closest('#' + IDS.panel) || node.closest('#' + IDS.auth)) return false;
+        const scope = node.closest('.js-threadTools, .threadTools, .thread-tools, .p-title-pageAction, .block-outer-opposite');
+        const label = [node.innerText, node.textContent, node.getAttribute('aria-label'), node.title, node.getAttribute('data-xf-click')]
+          .filter(Boolean).join(' ').toLowerCase();
+        return !!scope || /(?:тема|thread|инструмент|действ|ещё|еще|more|option|menu|⋯|…)/i.test(label);
+      });
+    for (const toggle of toggles.slice(0, 6)) {
       try { toggle.click(); } catch {}
       await new Promise(resolve => setTimeout(resolve, 180));
       if (['close','open','pin','unpin'].some(action => getThreadActionNodes(action).length)) return true;
