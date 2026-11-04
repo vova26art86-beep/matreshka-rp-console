@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Vladimir | Leader & Deputy Center
 // @namespace    Vladimir_Sudarikov.MatreshkaTools
-// @version      2.9.30
+// @version      2.9.31
 // @description  Leader/deputy SLA tracking with native forum username styling.
 // @match        *://forum.matrp.ru/*
 // @noframes
@@ -1404,7 +1404,7 @@
       if (document.getElementById('vldc-startup-error')) return;
       const box = document.createElement('div');
       box.id = 'vldc-startup-error';
-      box.textContent = 'Vladimir LD: ошибка запуска панели. Откройте консоль (F12) и отправьте разработчику ошибку.';
+      box.textContent = 'Vladimir LD: ошибка запуска — ' + (error && error.message ? error.message : String(error)) + '. Нажмите F12 и отправьте этот текст разработчику.';
       box.style.cssText = 'position:fixed;right:12px;bottom:12px;z-index:2147483647;max-width:360px;padding:12px 14px;border:2px solid #f87171;border-radius:10px;background:#450a0a;color:#fff;font:13px/1.4 Arial,sans-serif;box-shadow:0 4px 18px #0008';
       (document.body || document.documentElement).appendChild(box);
     };
