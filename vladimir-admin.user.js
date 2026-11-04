@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name         Vladimir Console — Matreshka RP (4.9.18)
+// @name         Vladimir Console — Matreshka RP (4.9.19)
 // @namespace    Vladimir_Sudarikov.AtelierConsole
-// @version      4.9.18
+// @version      4.9.19
 // @description  Персональная консоль: оформление ника как у Egor_Andyfy
 // @match        https://forum.matrp.ru/*
 // @match        http://forum.matrp.ru/*
@@ -535,7 +535,7 @@
     '281259': { role: 'deputy', label: 'ЗАМЕСТИТЕЛЬ · СГБ' },
     '594678': { role: 'deputy', label: 'ЗАМЕСТИТЕЛЬ · СГБ' },
     '587600': { role: 'deputy', label: 'ЗАМЕСТИТЕЛЬ · СГБ' },
-    '532291': { role: 'deputy', label: 'ЗАМЕСТИТЕЛЬ · МЧС' },
+    '532291': { role: 'leader', label: 'ЛИДЕР · МЧС' },
     '742975': { role: 'deputy', label: 'ЗАМЕСТИТЕЛЬ · МЧС' },
     '740394': { role: 'deputy', label: 'ЗАМЕСТИТЕЛЬ · МЧС' },
     '691279': { role: 'deputy', label: 'ЗАМЕСТИТЕЛЬ · ОПГ «ОФФНИКИ»' },
