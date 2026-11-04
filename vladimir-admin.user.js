@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name         Vladimir Console — Matreshka RP (4.9.19)
+// @name         Vladimir Console — Matreshka RP (4.9.22)
 // @namespace    Vladimir_Sudarikov.AtelierConsole
-// @version      4.9.21
+// @version      4.9.22
 // @description  Персональная консоль: оформление ника как у Egor_Andyfy
 // @match        https://forum.matrp.ru/*
 // @match        http://forum.matrp.ru/*
@@ -18,7 +18,9 @@
   const OWNER = 'Vladimir_Sudarikov';
   const AUTHORIZED_FORUM_USERS = Object.freeze({
     '109764': 'vlad_copov',
-    '341059': 'vladimir_sudarikov'
+    '341059': 'vladimir_sudarikov',
+    '56244': 'christian_montgomery',
+    '59093': 'mirik_zloy'
   });
   const LINKS = {
     myFollowing: 'https://forum.matrp.ru/index.php?members/vladimir_sudarikov.341059/following/',
@@ -465,7 +467,7 @@
   function showForumAccountDenied() {
     const id = currentForumUserId();
     const recognized = id ? AUTHORIZED_FORUM_USERS[id] : null;
-    auth.innerHTML = `<div class="va-card"><div style="font-size:10px;letter-spacing:.18em;color:#c4b5fd;font-weight:bold">MATRESHKA RP · PRIVATE WORKSPACE</div><h2>Вход по форумнику</h2><p>${recognized ? 'Аккаунт распознан: ' + recognized : 'Не удалось подтвердить один из разрешённых аккаунтов на этой странице.'}</p><div class="va-message">${recognized ? 'Доступ разрешён.' : 'Войдите на форум под одним из разрешённых аккаунтов: vlad_copov (ID 109764) или vladimir_sudarikov (ID 341059), затем обновите страницу.'}</div><button class="va-primary" id="va320-account-retry" type="button">Проверить аккаунт</button><button class="va-link" id="va320-account-close" type="button">Закрыть</button><div class="va-foot">Доступ проверяется по текущему аккаунту XenForo; пароль панели не требуется.</div></div>`;
+    auth.innerHTML = `<div class="va-card"><div style="font-size:10px;letter-spacing:.18em;color:#c4b5fd;font-weight:bold">MATRESHKA RP · PRIVATE WORKSPACE</div><h2>Вход по форумнику</h2><p>${recognized ? 'Аккаунт распознан: ' + recognized : 'Не удалось подтвердить один из разрешённых аккаунтов на этой странице.'}</p><div class="va-message">${recognized ? 'Доступ разрешён.' : 'Войдите на форум под одним из аккаунтов, которым выдан доступ, затем обновите страницу.'}</div><button class="va-primary" id="va320-account-retry" type="button">Проверить аккаунт</button><button class="va-link" id="va320-account-close" type="button">Закрыть</button><div class="va-foot">Доступ проверяется по текущему аккаунту XenForo; пароль панели не требуется.</div></div>`;
     auth.classList.add('va-show');
     inAuth('va320-account-retry').addEventListener('click', () => {
       if (currentForumUserId()) { closeAuth(); showPanel(); }
