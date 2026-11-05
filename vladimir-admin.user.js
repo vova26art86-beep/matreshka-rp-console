@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name         Vladimir Console — Matreshka RP (4.9.22)
+// @name         Vladimir Console — Matreshka RP (4.9.23)
 // @namespace    Vladimir_Sudarikov.AtelierConsole
-// @version      4.9.22
+// @version      4.9.23
 // @description  Персональная консоль: оформление ника как у Egor_Andyfy
 // @match        https://forum.matrp.ru/*
 // @match        http://forum.matrp.ru/*
@@ -72,8 +72,7 @@
     settings.cacheEnabled = true;
     settings.cacheTtlMinutes = 30;
   } catch { settings = { ...DEFAULTS }; }
-  // Recovery: never let a stale saved minimized flag start the console with an empty body.
-  settings.minimized = false;
+  // Состояние сворачивания сохраняется между переходами и перезагрузками.
   const saveSettings = () => safeSet(KEYS.settings, JSON.stringify(settings));
 
   const style = document.createElement('style');
@@ -476,7 +475,7 @@
     inAuth('va320-account-close').addEventListener('click', closeAuth);
   }
   function launch() {
-    if (panel.classList.contains('va-show')) { panel.classList.remove('va-show'); return; }
+    if (panel.classList.contains('va-show')) { panel.classList.remove('va-show'); saveSettings(); return; }
     const forumUserId = currentForumUserId();
     if (!forumUserId) { showForumAccountDenied(); return; }
     // Access is tied to the currently signed-in forum account, not a shared browser password.
@@ -2265,7 +2264,7 @@
     });
   })();
   inPanel('va320-min').addEventListener('click', () => { settings.minimized = !settings.minimized; inPanel('va320-body').hidden = settings.minimized; inPanel('va320-min').textContent = settings.minimized ? '+' : '−'; if (settings.minimized) { settings.panelHeight = Number(settings.panelHeight) || Math.round(panel.getBoundingClientRect().height); panel.classList.remove('va-user-resized'); panel.style.height = ''; } else if (settings.panelHeight >= 180) { panel.classList.add('va-user-resized'); panel.style.height = Math.min(settings.panelHeight, Math.max(180, window.innerHeight - settings.top - 8)) + 'px'; inPanel('va320-body').style.maxHeight = 'none'; } saveSettings(); });
-  inPanel('va320-close').addEventListener('click', () => panel.classList.remove('va-show'));
+  inPanel('va320-close').addEventListener('click', () => { panel.classList.remove('va-show'); saveSettings(); });
   enablePanelDragging();
   window.addEventListener('resize', () => applyPanelPosition(true), { passive: true });
   if (window.visualViewport) { window.visualViewport.addEventListener('resize', () => applyPanelPosition(false), { passive: true }); window.visualViewport.addEventListener('scroll', () => applyPanelPosition(false), { passive: true }); }
@@ -2303,7 +2302,8 @@
   if (document.documentElement) rootMountObserver.observe(document.documentElement, { childList: true, subtree: false });
 
   // No nickname/profile DOM rewriting or decoration observers are installed.
-  if (currentForumUserId()) showPanel();
+  // Не открываем консоль автоматически при каждой загрузке страницы.
+  // Пользователь сам открывает её кнопкой запуска; закрытая панель остаётся закрытой.
   try { sessionStorage.removeItem('vladimir_atelier_444_reply_draft'); } catch {}
   renderSlaFeed([...slaRows.values()], slaRows.size ? 'Восстановлены сохранённые результаты прошлых проверок. Просрочки показываются сверху.' : 'Открой раздел жалоб, Госс, Гетто или заявок — сроки появятся при прокрутке.');
   // Quiet mode: no automatic network scans on page load or in the background.
