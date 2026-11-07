@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Vladimir | Leader & Deputy Center
 // @namespace    Vladimir_Sudarikov.MatreshkaTools
-// @version      2.9.31
+// @version      2.9.32
 // @description  Leader/deputy SLA tracking with native forum username styling.
 // @match        *://forum.matrp.ru/*
 // @noframes
@@ -443,7 +443,6 @@
   resizeHandle.addEventListener('pointercancel', finishPanelResize);
   window.addEventListener('resize', () => applyPanelLayout(), { passive: true });
   if (window.visualViewport) { window.visualViewport.addEventListener('resize', () => applyPanelLayout(false), { passive: true }); window.visualViewport.addEventListener('scroll', () => applyPanelLayout(false), { passive: true }); }
-  if (window.visualViewport) window.visualViewport.addEventListener('resize', () => applyPanelLayout(false), { passive: true });
 
   // Local-only cosmetic rename: the forum account and server-side username are unchanged.
   function applyLocalProfileDisplayName(scope = document) {
@@ -1017,22 +1016,19 @@
       let messageChanged = false;
       for (const record of records) {
         const target = record.target instanceof Element ? record.target : record.target.parentElement;
-        if (record.type === 'attributes' && record.target instanceof Element) register(record.target);
-        if (record.type === 'characterData' && record.target.parentElement) register(record.target.parentElement);
-        if (record.type === 'childList' && record.target instanceof Element) register(record.target);
+        if (record.target instanceof Element) register(record.target);
         if (target?.closest?.('.message') && !target.closest('.vldc-sla-thread-chip')) messageChanged = true;
         for (const node of record.addedNodes) {
           register(node);
           if (node.nodeType === Node.ELEMENT_NODE && (node.matches?.('.message') || node.querySelector?.('.message'))) messageChanged = true;
         }
-        if (!ldSlaIntersection) scanVisibleFallback();
       }
       if (messageChanged && /(?:\/|\?)threads\//i.test(location.href) && !currentThreadRefreshQueued) {
         currentThreadRefreshQueued = true;
         setTimeout(() => { currentThreadRefreshQueued = false; ldSlaDecorateCurrentThread(); }, 180);
       }
     });
-    if (document.body) observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['datetime','data-time','data-timestamp','data-date-string','data-time-string','title','aria-label'], characterData: true });
+    if (document.body) observer.observe(document.body, { childList: true, subtree: true });
     if (!ldSlaIntersection) {
       scanVisibleFallback();
       window.addEventListener('scroll', scanVisibleFallback, { passive: true });
