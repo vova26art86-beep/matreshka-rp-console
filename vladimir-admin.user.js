@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name         Vladimir Console — Matreshka RP (4.9.23)
+// @name         Vladimir Console — Matreshka RP (4.9.24)
 // @namespace    Vladimir_Sudarikov.AtelierConsole
-// @version      4.9.23
+// @version      4.9.24
 // @description  Персональная консоль: оформление ника как у Egor_Andyfy
 // @match        https://forum.matrp.ru/*
 // @match        http://forum.matrp.ru/*
@@ -2276,12 +2276,12 @@
     if (e.altKey && e.key.toLowerCase() === 'm' && !['INPUT','TEXTAREA','SELECT'].includes(document.activeElement?.tagName)) { e.preventDefault(); launch(); }
   }, true);
 
-  // Mount once at the document root. A lightweight observer watches only direct
-  // children of <html>; it does not react to every forum message/DOM mutation.
+  // Mount UI inside <body> for reliable fixed positioning in Chromium-based browsers,
+  // including Opera. Keep the repair observer limited to direct body children.
   function mount() {
-    const root = document.documentElement;
+    const root = document.body;
     if (!root) return false;
-    if (!document.getElementById(IDS.style)) (document.head || root).appendChild(style);
+    if (!document.getElementById(IDS.style)) (document.head || document.documentElement).appendChild(style);
     if (!document.getElementById(IDS.launcher)) root.appendChild(launcher);
     if (!document.getElementById(IDS.panel)) root.appendChild(panel);
     if (!document.getElementById(IDS.auth)) root.appendChild(auth);
@@ -2291,7 +2291,7 @@
     const readyObserver = new MutationObserver(() => {
       if (mount()) readyObserver.disconnect();
     });
-    readyObserver.observe(document, { childList: true, subtree: true });
+    readyObserver.observe(document.documentElement || document, { childList: true, subtree: true });
   }
   const rootMountObserver = new MutationObserver(records => {
     const removedKnownNode = records.some(record => [...record.removedNodes].some(node =>
@@ -2299,7 +2299,7 @@
     ));
     if (removedKnownNode) mount();
   });
-  if (document.documentElement) rootMountObserver.observe(document.documentElement, { childList: true, subtree: false });
+  if (document.body) rootMountObserver.observe(document.body, { childList: true, subtree: false });
 
   // No nickname/profile DOM rewriting or decoration observers are installed.
   // Не открываем консоль автоматически при каждой загрузке страницы.
