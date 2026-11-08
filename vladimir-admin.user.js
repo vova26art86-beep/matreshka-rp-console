@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name         Vladimir Console — Matreshka RP (4.9.24)
+// @name         Vladimir Console — Matreshka RP (4.9.25)
 // @namespace    Vladimir_Sudarikov.AtelierConsole
-// @version      4.9.24
+// @version      4.9.25
 // @description  Персональная консоль: оформление ника как у Egor_Andyfy
 // @match        https://forum.matrp.ru/*
 // @match        http://forum.matrp.ru/*
@@ -44,7 +44,7 @@
   try { localStorage.removeItem('vladimir_atelier_egor_reference_style_v3'); } catch {}
   const ITERATIONS = 310000;
   const ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%&*';
-  const DEFAULTS = { theme: 'obsidian', accent: '#a78bfa', notes: '', minimized: false, panelHeight: 0, top: 82, right: 18, replyName: '', replyReason: '', cacheEnabled: true, cacheTtlMinutes: 30 };
+  const DEFAULTS = { theme: 'obsidian', accent: '#a78bfa', notes: '', minimized: false, panelOpen: false, panelHeight: 0, top: 82, right: 18, replyName: '', replyReason: '', cacheEnabled: true, cacheTtlMinutes: 30 };
 
   if (location.hostname !== 'forum.matrp.ru') {
     console.warn('[Vladimir Console 4.7.3] Скрипт рассчитан на https://forum.matrp.ru/');
@@ -62,6 +62,7 @@
     if (!['obsidian', 'pearl', 'forest'].includes(settings.theme)) settings.theme = DEFAULTS.theme;
     if (!/^#[0-9a-f]{6}$/i.test(settings.accent)) settings.accent = DEFAULTS.accent;
     if (typeof settings.notes !== 'string') settings.notes = '';
+    if (typeof settings.panelOpen !== 'boolean') settings.panelOpen = false;
     if (!Number.isFinite(settings.panelHeight) || settings.panelHeight < 0) settings.panelHeight = DEFAULTS.panelHeight;
     if (!Number.isFinite(settings.top)) settings.top = DEFAULTS.top;
     if (!Number.isFinite(settings.right)) settings.right = DEFAULTS.right;
@@ -383,6 +384,8 @@
   }
 
   function showPanel() {
+    settings.panelOpen = true;
+    saveSettings();
     // Сначала восстановить сохранённые координаты, затем показать панель.
     // Не вычисляем top от нижней кнопки при каждом открытии: это затирало пользовательское положение.
     applyPanelPosition(false);
@@ -475,7 +478,7 @@
     inAuth('va320-account-close').addEventListener('click', closeAuth);
   }
   function launch() {
-    if (panel.classList.contains('va-show')) { panel.classList.remove('va-show'); saveSettings(); return; }
+    if (panel.classList.contains('va-show')) { panel.classList.remove('va-show'); settings.panelOpen = false; saveSettings(); return; }
     const forumUserId = currentForumUserId();
     if (!forumUserId) { showForumAccountDenied(); return; }
     // Access is tied to the currently signed-in forum account, not a shared browser password.
@@ -2264,7 +2267,7 @@
     });
   })();
   inPanel('va320-min').addEventListener('click', () => { settings.minimized = !settings.minimized; inPanel('va320-body').hidden = settings.minimized; inPanel('va320-min').textContent = settings.minimized ? '+' : '−'; if (settings.minimized) { settings.panelHeight = Number(settings.panelHeight) || Math.round(panel.getBoundingClientRect().height); panel.classList.remove('va-user-resized'); panel.style.height = ''; } else if (settings.panelHeight >= 180) { panel.classList.add('va-user-resized'); panel.style.height = Math.min(settings.panelHeight, Math.max(180, window.innerHeight - settings.top - 8)) + 'px'; inPanel('va320-body').style.maxHeight = 'none'; } saveSettings(); });
-  inPanel('va320-close').addEventListener('click', () => { panel.classList.remove('va-show'); saveSettings(); });
+  inPanel('va320-close').addEventListener('click', () => { panel.classList.remove('va-show'); settings.panelOpen = false; saveSettings(); });
   enablePanelDragging();
   window.addEventListener('resize', () => applyPanelPosition(true), { passive: true });
   if (window.visualViewport) { window.visualViewport.addEventListener('resize', () => applyPanelPosition(false), { passive: true }); window.visualViewport.addEventListener('scroll', () => applyPanelPosition(false), { passive: true }); }
@@ -2306,6 +2309,8 @@
   // Пользователь сам открывает её кнопкой запуска; закрытая панель остаётся закрытой.
   try { sessionStorage.removeItem('vladimir_atelier_444_reply_draft'); } catch {}
   renderSlaFeed([...slaRows.values()], slaRows.size ? 'Восстановлены сохранённые результаты прошлых проверок. Просрочки показываются сверху.' : 'Открой раздел жалоб, Госс, Гетто или заявок — сроки появятся при прокрутке.');
+  // Restore the panel after full-page forum navigation only when the user left it open.
+  if (settings.panelOpen && currentForumUserId()) showPanel();
   // Quiet mode: no automatic network scans on page load or in the background.
   // The user starts a scan explicitly from the panel; cached results prevent repeat fetches.
   if (isComplaintArea()) {
