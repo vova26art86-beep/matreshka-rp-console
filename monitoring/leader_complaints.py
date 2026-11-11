@@ -79,14 +79,20 @@ def parse_forum(html):
         title = title_link.get_text(" ", strip=True) or "Без названия"
         starter = row.select_one(".structItem-parts a.username") or row.select_one(".structItem-minor a.username")
         starter_name = starter.get_text(" ", strip=True) if starter else "неизвестен"
-        latest = row.select_one(".structItem-cell--latest a")
-        if not latest:
-            latest = row.select_one(".structItem-latest a")
+        latest_cell = row.select_one(".structItem-cell--latest") or row.select_one(".structItem-latest")
+        latest = None
+        if latest_cell:
+            latest = latest_cell.select_one("a[href*='#post-'], a[href*='/posts/']")
+            if not latest:
+                latest = latest_cell.select_one(".structItem-latestDate a") or latest_cell.select_one("a")
         latest_href = urljoin(FORUM_URL, latest.get("href", "")) if latest else href
-        last_post_id = get_post_id(latest_href) or f"latest:{row.get_text(' ', strip=True)[-120:]}"
-        last_author = latest.get_text(" ", strip=True) if latest else starter_name
-        time_el = row.select_one(".structItem-cell--latest time") or row.select_one("time")
+        last_post_id = get_post_id(latest_href)
+        latest_user = latest_cell.select_one("a.username") if latest_cell else None
+        last_author = latest_user.get_text(" ", strip=True) if latest_user else starter_name
+        time_el = (latest_cell.select_one("time") if latest_cell else None) or row.select_one("time")
         stamp = time_el.get("datetime", "") if time_el else ""
+        if not last_post_id:
+            last_post_id = f"latest:{stamp}:{last_author}" if stamp else f"latest:{last_author}"
         found[topic_id] = {
             "title": title,
             "url": href,
