@@ -37,10 +37,10 @@ jobs:
 
       - name: Save monitoring state
         run: |
-          if ! git diff --quiet -- monitoring/state.json; then
+          git add monitoring/state.json
+          if ! git diff --cached --quiet; then
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add monitoring/state.json
             git commit -m "chore: update leader complaints monitor state"
             git push
           fi
